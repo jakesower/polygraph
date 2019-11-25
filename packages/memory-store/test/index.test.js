@@ -76,7 +76,7 @@ test.beforeEach(t => {
 });
 
 test('fetches a single resource', async t => {
-  const result = await t.context.store({ get: { type: 'bears', id: '1' } });
+  const result = await t.context.store.get({ type: 'bears', id: '1' });
 
   t.deepEqual(result, {
     type: 'bears',
@@ -87,13 +87,13 @@ test('fetches a single resource', async t => {
 });
 
 test('does not fetch a nonexistent resource', async t => {
-  const result = await t.context.store({ get: { type: 'bears', id: '6' } });
+  const result = await t.context.store.get({ type: 'bears', id: '6' });
 
   t.deepEqual(result, null);
 });
 
 test('fetches multiple resources', async t => {
-  const result = await t.context.store({ get: { type: 'bears' } });
+  const result = await t.context.store.get({ type: 'bears' });
 
   t.deepEqual(result, [
     {
@@ -124,12 +124,10 @@ test('fetches multiple resources', async t => {
 });
 
 test('fetches a single resource with a single relationship', async t => {
-  const result = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '1',
-      relationships: { home: {} },
-    },
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { home: {} },
   });
 
   t.deepEqual(result, {
@@ -148,18 +146,16 @@ test('fetches a single resource with a single relationship', async t => {
 });
 
 test('fetches multiple relationships of various types', async t => {
-  const result = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '1',
-      relationships: {
-        home: {
-          relationships: {
-            bears: {},
-          },
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: {
+      home: {
+        relationships: {
+          bears: {},
         },
-        powers: {},
       },
+      powers: {},
     },
   });
 
@@ -208,12 +204,10 @@ test('fetches multiple relationships of various types', async t => {
 });
 
 test('handles relationships between the same type', async t => {
-  const result = await t.context.store({
-    get: {
-      type: 'bears',
-      relationships: {
-        best_friend: {},
-      },
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: {
+      best_friend: {},
     },
   });
 
@@ -260,13 +254,11 @@ test('handles relationships between the same type', async t => {
 });
 
 test('creates new objects without relationships', async t => {
-  t.context.store({ merge: grumpyBear });
+  t.context.store.merge(grumpyBear);
 
-  const result = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '4',
-    },
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '4',
   });
 
   t.deepEqual(result, {
@@ -278,19 +270,15 @@ test('creates new objects without relationships', async t => {
 });
 
 test('creates new objects with a relationship', async t => {
-  await t.context.store({
-    merge: {
-      ...grumpyBear,
-      relationships: { home: '1' },
-    },
+  await t.context.store.merge({
+    ...grumpyBear,
+    relationships: { home: '1' },
   });
 
-  const result = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '4',
-      relationships: { home: {} },
-    },
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '4',
+    relationships: { home: {} },
   });
 
   t.deepEqual(result, {
@@ -309,19 +297,15 @@ test('creates new objects with a relationship', async t => {
 });
 
 test('merges into existing objects', async t => {
-  await t.context.store({
-    merge: {
-      type: 'bears',
-      id: '2',
-      attributes: { fur_color: 'carnation pink' },
-    },
+  await t.context.store.merge({
+    type: 'bears',
+    id: '2',
+    attributes: { fur_color: 'carnation pink' },
   });
 
-  const result = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '2',
-    },
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '2',
   });
 
   t.deepEqual(result, {
@@ -333,85 +317,69 @@ test('merges into existing objects', async t => {
 });
 
 test('deletes objects', async t => {
-  await t.context.store({ delete: { type: 'bears', id: '1' } });
-  const result = await t.context.store({
-    get: {
-      type: 'homes',
-      id: '1',
-      relationships: { bears: {} },
-    },
+  await t.context.store.delete({ type: 'bears', id: '1' });
+  const result = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
   });
 
   t.is(result.relationships.bears.length, 2);
 });
 
 test('replaces a one-to-one relationship', async t => {
-  await t.context.store({
-    replaceRelationship: {
-      type: 'bears',
-      id: '2',
-      relationship: 'home',
-      foreignId: '2',
-    },
+  await t.context.store.replaceRelationship({
+    type: 'bears',
+    id: '2',
+    relationship: 'home',
+    foreignId: '2',
   });
 
-  const bearResult = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '2',
-      relationships: { home: {} },
-    },
+  const bearResult = await t.context.store.get({
+    type: 'bears',
+    id: '2',
+    relationships: { home: {} },
   });
 
   t.is(bearResult.relationships.home.attributes.name, 'Forest of Feelings');
 
-  const careALotResult = await t.context.store({
-    get: {
-      type: 'homes',
-      id: '1',
-      relationships: { bears: {} },
-    },
+  const careALotResult = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
   });
 
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
 test('replaces a one-to-many-relationship', async t => {
-  await t.context.store({
-    replaceRelationships: {
-      type: 'homes',
-      id: '1',
-      relationship: 'bears',
-      foreignIds: ['1', '5'],
-    },
+  await t.context.store.replaceRelationships({
+    type: 'homes',
+    id: '1',
+    relationship: 'bears',
+    foreignIds: ['1', '5'],
   });
 
-  const bearResult = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '2',
-      relationships: { home: {} },
-    },
+  const bearResult = await t.context.store.get({
+    type: 'bears',
+    id: '2',
+    relationships: { home: {} },
   });
 
   t.is(bearResult.relationships.home, null);
 
-  const wonderheartResult = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '5',
-      relationships: { home: {} },
-    },
+  const wonderheartResult = await t.context.store.get({
+    type: 'bears',
+    id: '5',
+    relationships: { home: {} },
   });
 
   t.is(wonderheartResult.relationships.home.attributes.name, 'Care-a-Lot');
 
-  const careALotResult = await t.context.store({
-    get: {
-      type: 'homes',
-      id: '1',
-      relationships: { bears: {} },
-    },
+  const careALotResult = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
   });
 
   t.is(careALotResult.relationships.bears.length, 2);
@@ -421,92 +389,74 @@ test('replaces a one-to-many-relationship', async t => {
 // TODO: symmetric relationship testing
 
 test('appends to a to-many relationship', async t => {
-  await t.context.store({
-    appendRelationships: {
-      type: 'homes',
-      id: '1',
-      relationship: 'bears',
-      foreignIds: ['1', '5'],
-    },
+  await t.context.store.appendRelationships({
+    type: 'homes',
+    id: '1',
+    relationship: 'bears',
+    foreignIds: ['1', '5'],
   });
 
-  const bearResult = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '5',
-      relationships: { home: {} },
-    },
+  const bearResult = await t.context.store.get({
+    type: 'bears',
+    id: '5',
+    relationships: { home: {} },
   });
 
   t.is(bearResult.relationships.home.attributes.name, 'Care-a-Lot');
 
-  const careALotResult = await t.context.store({
-    get: {
-      type: 'homes',
-      id: '1',
-      relationships: { bears: {} },
-    },
+  const careALotResult = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
   });
 
   t.is(careALotResult.relationships.bears.length, 4);
 });
 
 test('deletes a to-one relationship', async t => {
-  await t.context.store({
-    deleteRelationship: {
-      type: 'bears',
-      id: '1',
-      relationship: 'home',
-    },
+  await t.context.store.deleteRelationship({
+    type: 'bears',
+    id: '1',
+    relationship: 'home',
   });
 
-  const bearResult = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '1',
-      relationships: { home: {} },
-    },
+  const bearResult = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { home: {} },
   });
 
   t.is(bearResult.relationships.home, null);
 
-  const careALotResult = await t.context.store({
-    get: {
-      type: 'homes',
-      id: '1',
-      relationships: { bears: {} },
-    },
+  const careALotResult = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
   });
 
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
 test('deletes a to-many relationship', async t => {
-  await t.context.store({
-    deleteRelationships: {
-      type: 'homes',
-      id: '1',
-      relationship: 'bears',
-      foreignIds: ['1'],
-    },
+  await t.context.store.deleteRelationships({
+    type: 'homes',
+    id: '1',
+    relationship: 'bears',
+    foreignIds: ['1'],
   });
 
-  const bearResult = await t.context.store({
-    get: {
-      type: 'bears',
-      id: '1',
-      relationships: { home: {} },
-    },
+  const bearResult = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { home: {} },
   });
 
   t.is(bearResult.relationships.home, null);
 
-  const careALotResult = await t.context.store({
-    get: {
-      type: 'homes',
-      id: '1',
-      relationships: { bears: {} },
-    },
+  const careALotResult = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
   });
 
   t.is(careALotResult.relationships.bears.length, 2);

@@ -22,7 +22,7 @@ export function MemoryStore(schema, baseState) {
     relationships: assignChildren([baseRelationships, baseState.relationships || {}]),
   };
 
-  const dispatchMap = {
+  return {
     get,
     merge,
     delete: delete_,
@@ -31,16 +31,6 @@ export function MemoryStore(schema, baseState) {
     replaceRelationships,
     deleteRelationship,
     deleteRelationships,
-  };
-
-  return function(action) {
-    const actionKey = Object.keys(dispatchMap).find(k => k in action);
-
-    if (!actionKey) {
-      return Promise.reject('unrecognized action!');
-    }
-
-    return Promise.resolve(dispatchMap[actionKey](action[actionKey]));
   };
 
   // Main actions

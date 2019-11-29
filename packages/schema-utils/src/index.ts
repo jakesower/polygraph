@@ -3,6 +3,8 @@ import { Schema, SchemaAttribute } from './types';
 import { overPath, mapObj, inlineKey, pluckKeys, uniq, reduceObj } from '@polygraph/utils';
 import schemaSchema from './etc/schema.schema.json';
 
+export { Schema };
+
 function schemaErrors(rawSchema) {
   const validate = new ajv().compile(schemaSchema);
 

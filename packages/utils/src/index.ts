@@ -4,7 +4,7 @@ export function appendKeys<T, K extends keyof T>(
   base: { [k: string]: T[K][] },
   other: { [k: string]: T[K][] }
 ): { [k: string]: T[K][] } {
-  const keys = Object.keys(base);
+  const keys = Object.keys(base); // TODO: should be intersection of base and other keys
   let result = {};
   for (let key of keys) {
     result[key] = [...base[key], ...other[key]];
@@ -215,7 +215,10 @@ export function pick<T>(obj: { [k: string]: T }, keys: string[]): { [k: string]:
 }
 
 export function pipe(fns: ((x: any) => any)[]): (x: any) => any {
-  return fns.reduce((acc, fn) => val => fn(acc(val)), x => x);
+  return fns.reduce(
+    (acc, fn) => val => fn(acc(val)),
+    x => x
+  );
 }
 
 export async function pipeMw(init, mws) {

@@ -1,0 +1,44 @@
+{
+  "name": "@polygraph/sqlite-store",
+  "version": "0.0.1",
+  "description": "Sqlite polygraph store.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src -d dist",
+    "test": "NODE_ENV=test ava",
+    "test:watch": "NODE_ENV=test ava -w"
+  },
+  "keywords": [],
+  "author": "Jake Sower",
+  "license": "CC BY-NC-SA",
+  "dependencies": {
+    "@polygraph/schema-utils": "^0.0.2",
+    "@polygraph/utils": "^0.0.2",
+    "sqlite": "^3.0.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "ava": "^2.4.0",
+    "ts-node": "^8.5.2",
+    "typescript": "^3.7.2"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "files": [
+      "test/*.test.js"
+    ],
+    "require": [
+      "esm",
+      "ts-node/register"
+    ],
+    "extensions": [
+      "mjs",
+      "ts"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

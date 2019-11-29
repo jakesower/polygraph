@@ -295,8 +295,8 @@ test('handles relationships between the same type', async t => {
   ]);
 });
 
-test.skip('creates new objects without relationships', async t => {
-  t.context.store.merge(grumpyBear);
+test('creates new objects without relationships', async t => {
+  await t.context.store.merge(grumpyBear);
 
   const result = await t.context.store.get({
     type: 'bears',

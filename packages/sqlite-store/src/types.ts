@@ -51,6 +51,14 @@ export interface SchemaRelationship {
   meta?: any;
 }
 
+export interface ResourceGraph {
+  type: string;
+  id: string;
+  attributes: { [k: string]: any };
+  relationships: { [k: string]: any };
+}
+
 export interface Store {
   get: (query: Query) => Promise<Result>;
+  merge: (resourceGraph: ResourceGraph) => Promise<any>;
 }

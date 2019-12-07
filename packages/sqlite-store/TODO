@@ -1,0 +1,4 @@
+# NOTES
+
+- Symmetric relationships need to be explicitly identified and handled
+- Multiple many-to-many relationships between the same two resources

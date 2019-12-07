@@ -1,6 +1,7 @@
 import { Query, Database, Result, Schema, Store } from './types';
 // import { Schema } from '@polygraph/schema-utils';
 import { appendKeys, uniq, unnest, mergeAll, mapObj } from '@polygraph/utils';
+import { joinTableName } from '@polygraph/schema-utils';
 
 export async function get(schema: Schema, db: Database, query: Query): Promise<Result> {
   const { query: q, params } = buildQuery(query);
@@ -176,14 +177,11 @@ export async function get(schema: Schema, db: Database, query: Query): Promise<R
     const foreignRelName = localDef.inverse;
 
     if (localDef.cardinality === 'many' && foreignDef.cardinality === 'many') {
-      const joinTable =
-        localDef.key < foreignDef.key
-          ? `${localDef.key}_${foreignDef.key}`
-          : `${foreignDef.key}_${localDef.key}`;
-      const joinTableName = `${localTableName}$$$${foreignTableName}`;
+      const joinTable = joinTableName(localDef);
+      const joinTableAlias = `${localTableName}$$$${foreignTableName}`;
 
-      return `LEFT OUTER JOIN ${joinTable} AS ${joinTableName} ON ${localTableName}$$id = ${joinTableName}.${foreignDef.key}_id
-              LEFT OUTER JOIN ${foreignType} AS ${foreignTableName} ON ${foreignTableName}$$id = ${joinTableName}.${localDef.key}_id`;
+      return `LEFT OUTER JOIN ${joinTable} AS ${joinTableAlias} ON ${localTableName}$$id = ${joinTableAlias}.${foreignDef.key}_id
+              LEFT OUTER JOIN ${foreignType} AS ${foreignTableName} ON ${foreignTableName}$$id = ${joinTableAlias}.${localDef.key}_id`;
     }
 
     const base = `LEFT OUTER JOIN ${foreignType} AS ${foreignTableName} ON`;

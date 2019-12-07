@@ -40,6 +40,9 @@ export declare function mapObj<T, U>(obj: {
 }, fn: (x: T, idx: string) => U): {
     [k in string]: U;
 };
+export declare function mapObjToArray<T, U>(obj: {
+    [k in string]: T;
+}, fn: (x: T, idx: string) => U): U[];
 export declare function maxStable<T>(fn: (a: T) => Ord, xs: T[]): T;
 export declare function mapResult(resultOrResults: any, fn: any): any;
 export declare function mergeAll<T>(items: {

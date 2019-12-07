@@ -51,14 +51,19 @@ const attrs = {
   homes: {
     1: {
       name: 'Care-a-Lot',
-      location: 'Clouds',
+      location: 'Kingdom of Caring',
       caring_meter: 1,
     },
+    2: { name: 'Forest of Feelings', location: 'Kingdom of Caring', caring_meter: 1 },
   },
   powers: {
     careBearStare: {
       name: 'Care Bear Stare',
       description: 'Purges evil.',
+    },
+    makeWish: {
+      name: 'Make a Wish',
+      description: 'Makes a wish on Twinkers',
     },
   },
 };
@@ -88,10 +93,11 @@ test.beforeEach(async t => {
     "INSERT INTO bears VALUES ('5', 'Wonderheart Bear', 'female', 'three hearts', 'pink', '', '')"
   );
 
-  await db.run("INSERT INTO homes VALUES ('1', 'Care-a-Lot', 'Clouds', 1)");
+  await db.run("INSERT INTO homes VALUES ('1', 'Care-a-Lot', 'Kingdom of Caring', 1)");
   await db.run("INSERT INTO homes VALUES ('2', 'Forest of Feelings', 'Kingdom of Caring', 1)");
 
   await db.run("INSERT INTO powers VALUES ('careBearStare', 'Care Bear Stare', 'Purges evil.')");
+  await db.run("INSERT INTO powers VALUES ('makeWish', 'Make a Wish', 'Makes a wish on Twinkers')");
 
   await db.run("INSERT INTO bears_powers VALUES ('1', 'careBearStare')");
   await db.run("INSERT INTO bears_powers VALUES ('2', 'careBearStare')");
@@ -311,7 +317,7 @@ test('creates new objects without relationships', async t => {
   });
 });
 
-test.skip('creates new objects with a relationship', async t => {
+test('creates new objects with a relationship', async t => {
   await t.context.store.merge({
     ...grumpyBear,
     relationships: { home: '1' },
@@ -338,11 +344,11 @@ test.skip('creates new objects with a relationship', async t => {
   });
 });
 
-test.skip('merges into existing objects', async t => {
+test('merges into existing objects', async t => {
   await t.context.store.merge({
     type: 'bears',
     id: '2',
-    attributes: { fur_color: 'carnation pink' },
+    attributes: { fur_color: 'just pink' },
   });
 
   const result = await t.context.store.get({
@@ -353,8 +359,77 @@ test.skip('merges into existing objects', async t => {
   t.deepEqual(result, {
     type: 'bears',
     id: '2',
-    attributes: { ...attrs.bears['2'], fur_color: 'carnation pink' },
+    attributes: { ...attrs.bears['2'], fur_color: 'just pink' },
     relationships: {},
+  });
+});
+
+test('merges into one-to-many relationship', async t => {
+  await t.context.store.merge({
+    type: 'bears',
+    id: '1',
+    relationships: { home: '2' },
+  });
+
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { home: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '1',
+    attributes: attrs.bears['1'],
+    relationships: {
+      home: { type: 'homes', id: '2', relationships: {}, attributes: attrs.homes['2'] },
+    },
+  });
+});
+
+test('merges into many-to-one relationship', async t => {
+  await t.context.store.merge({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: ['1'] },
+  });
+
+  const result = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'homes',
+    id: '1',
+    attributes: attrs.homes['1'],
+    relationships: {
+      bears: [{ type: 'bears', id: '1', relationships: {}, attributes: attrs.bears['1'] }],
+    },
+  });
+});
+
+test('merges into many-to-many relationship', async t => {
+  await t.context.store.merge({
+    type: 'powers',
+    id: 'makeWish',
+    relationships: { bears: ['5'] },
+  });
+
+  const result = await t.context.store.get({
+    type: 'powers',
+    id: 'makeWish',
+    relationships: { bears: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'powers',
+    id: 'makeWish',
+    attributes: attrs.powers.makeWish,
+    relationships: {
+      bears: [{ type: 'bears', id: '5', relationships: {}, attributes: attrs.bears['5'] }],
+    },
   });
 });
 

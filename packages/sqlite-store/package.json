@@ -13,7 +13,7 @@
   "license": "CC BY-NC-SA",
   "dependencies": {
     "@polygraph/schema-utils": "^0.0.2",
-    "@polygraph/utils": "^0.0.2",
+    "@polygraph/utils": "^0.0.3",
     "sqlite": "^3.0.3"
   },
   "devDependencies": {

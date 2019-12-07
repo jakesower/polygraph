@@ -102,6 +102,12 @@ export function mapObj<T, U>(
   return zipObj(keys, mappedVals);
 }
 
+export function mapObjToArray<T, U>(obj: { [k in string]: T }, fn: (x: T, idx: string) => U): U[] {
+  const [keys, vals] = [Object.keys(obj), Object.values(obj)];
+  const mappedVals = vals.map((v, idx) => fn(v, keys[idx]));
+  return mappedVals;
+}
+
 export function maxStable<T>(fn: (a: T) => Ord, xs: T[]): T {
   const l = xs.length;
   let out = xs[0];
@@ -208,7 +214,7 @@ export function pick<T>(obj: { [k: string]: T }, keys: string[]): { [k: string]:
   let out = {};
 
   for (let i = 0; i < l; i += 1) {
-    out[keys[i]] = obj[keys[i]];
+    if (keys[i] in obj) out[keys[i]] = obj[keys[i]];
   }
 
   return out;

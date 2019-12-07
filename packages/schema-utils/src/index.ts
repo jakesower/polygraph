@@ -1,5 +1,5 @@
 import ajv from 'ajv';
-import { Schema, SchemaAttribute } from './types';
+import { Schema, SchemaAttribute, SchemaRelationship } from './types';
 import { overPath, mapObj, inlineKey, pluckKeys, uniq, reduceObj } from '@polygraph/utils';
 import schemaSchema from './etc/schema.schema.json';
 
@@ -129,4 +129,10 @@ export function isSymmetricRelationship(
   const relationshipDef = schema.resources[resourceType].relationships[relationshipName];
 
   return resourceType === relationshipDef.type && relationshipDef.key === relationshipName;
+}
+
+export function joinTableName(relationship: SchemaRelationship): string {
+  return relationship.inverse > relationship.key
+    ? `${relationship.key}_${relationship.inverse}`
+    : `${relationship.inverse}_${relationship.key}`;
 }

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 function appendKeys(base, other) {
-    const keys = Object.keys(base);
+    const keys = Object.keys(base); // TODO: should be intersection of base and other keys
     let result = {};
     for (let key of keys) {
         result[key] = [...base[key], ...other[key]];
@@ -95,6 +95,12 @@ function mapObj(obj, fn) {
     return zipObj(keys, mappedVals);
 }
 exports.mapObj = mapObj;
+function mapObjToArray(obj, fn) {
+    const [keys, vals] = [Object.keys(obj), Object.values(obj)];
+    const mappedVals = vals.map((v, idx) => fn(v, keys[idx]));
+    return mappedVals;
+}
+exports.mapObjToArray = mapObjToArray;
 function maxStable(fn, xs) {
     const l = xs.length;
     let out = xs[0];
@@ -179,7 +185,8 @@ function pick(obj, keys) {
     const l = keys.length;
     let out = {};
     for (let i = 0; i < l; i += 1) {
-        out[keys[i]] = obj[keys[i]];
+        if (keys[i] in obj)
+            out[keys[i]] = obj[keys[i]];
     }
     return out;
 }

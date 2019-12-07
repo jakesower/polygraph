@@ -85,3 +85,9 @@ function isSymmetricRelationship(schema, resourceType, relationshipName) {
     return resourceType === relationshipDef.type && relationshipDef.key === relationshipName;
 }
 exports.isSymmetricRelationship = isSymmetricRelationship;
+function joinTableName(relationship) {
+    return relationship.inverse > relationship.key
+        ? `${relationship.key}_${relationship.inverse}`
+        : `${relationship.inverse}_${relationship.key}`;
+}
+exports.joinTableName = joinTableName;

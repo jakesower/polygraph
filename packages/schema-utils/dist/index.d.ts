@@ -1,4 +1,5 @@
 import { Schema, SchemaAttribute } from './types';
+export { Schema };
 export declare function expandSchema(rawSchema: any): Schema;
 export declare function resourceNames(schema: Schema): string[];
 export declare function resourceAttributes(schema: Schema, resourceType: string): {
@@ -19,3 +20,4 @@ export declare function canonicalRelationship(schema: Schema, resourceType: stri
 export declare function canonicalRelationshipName(schema: Schema, resourceType: string, relationshipName: string): string;
 export declare function canonicalRelationshipNames(schema: Schema): string[];
 export declare function isSymmetricRelationship(schema: Schema, resourceType: string, relationshipName: string): boolean;
+export declare function joinTableName(relationship: any): string;

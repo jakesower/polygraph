@@ -58,8 +58,37 @@ export interface ResourceGraph {
   relationships?: { [k: string]: any };
 }
 
+export interface RelationshipReplacement {
+  type: string;
+  id: string;
+  relationship: string;
+  foreignId: string;
+}
+
+export interface RelationshipReplacements {
+  type: string;
+  id: string;
+  relationship: string;
+  foreignIds: string[];
+}
+
+interface DeleteInterface {
+  type: string;
+  id: string;
+  relationship: string;
+}
+
+interface MultiDeleteInterface extends DeleteInterface {
+  foreignIds: string[];
+}
+
 export interface Store {
   get: (query: Query) => Promise<Result>;
   merge: (resourceGraph: ResourceGraph) => Promise<any>;
   delete: (resource: ResourceGraph) => Promise<any>;
+  replaceRelationship: (resource: RelationshipReplacement) => Promise<any>;
+  replaceRelationships: (resource: RelationshipReplacements) => Promise<any>;
+  appendRelationships: (resource: RelationshipReplacementss) => Promise<any>;
+  deleteRelationship: (resource: DeleteInterface) => Promise<any>;
+  deleteRelationships: (resource: MultiDeleteInterface) => Promise<any>;
 }

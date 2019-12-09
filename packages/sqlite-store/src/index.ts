@@ -5,6 +5,7 @@ import {
   ResourceGraph,
   SchemaResource,
   SchemaRelationship,
+  RelationshipReplacement,
 } from './types';
 import { get } from './get';
 import { pick } from '@polygraph/utils';
@@ -116,6 +117,54 @@ export function SqliteStore(schema: Schema, db: Database): Store {
 
       return await Promise.all([localQuery, ...manyToOneQueries, ...manyToManyQueries]);
     },
+    replaceRelationship: async function(replacement: RelationshipReplacement): Promise<any> {
+      const sql = `UPDATE ${replacement.type} SET ${replacement.relationship}_id = ? WHERE id = ?`;
+      const params = [replacement.foreignId, replacement.id];
+
+      return db.run(sql, params);
+    },
+    replaceRelationships: async function(replacement) {
+      const rel = schema.resources[replacement.type].relationships[replacement.relationship];
+
+      const deleteSql = `UPDATE ${rel.type} SET ${rel.inverse}_id = NULL WHERE ${rel.inverse}_id = ?`;
+      const deleteParams = [replacement.id];
+
+      await db.run(deleteSql, deleteParams);
+
+      const addSql = `UPDATE ${rel.type} SET ${
+        rel.inverse
+      }_id = ? WHERE id IN (${replacement.foreignIds.map(_ => '?').join(',')})`;
+      const addParams = [replacement.id, ...replacement.foreignIds];
+
+      return db.run(addSql, addParams);
+    },
+    appendRelationships: async function(replacement) {
+      const rel = schema.resources[replacement.type].relationships[replacement.relationship];
+      const addSql = `UPDATE ${rel.type} SET ${
+        rel.inverse
+      }_id = ? WHERE id IN (${replacement.foreignIds.map(_ => '?').join(',')})`;
+      const addParams = [replacement.id, ...replacement.foreignIds];
+
+      return db.run(addSql, addParams);
+    },
+    deleteRelationship: async function({ type, id, relationship }) {
+      // const rel = schema.resources[type].relationships[relationship];
+
+      const sql = `UPDATE ${type} SET ${relationship}_id = NULL WHERE id = ?`;
+      const params = [id];
+
+      return db.run(sql, params);
+    },
+    deleteRelationships: function({ type, id, relationship: relName, foreignIds }) {
+      const rel = schema.resources[type].relationships[relName];
+
+      const sql = `UPDATE ${rel.type} SET ${rel.inverse}_id = NULL WHERE id IN (${foreignIds
+        .map(_ => '?')
+        .join(',')})`;
+      const params = foreignIds;
+
+      return db.run(sql, params);
+    },
   };
 
   function partitionRelationships(resource: SchemaResource) {
@@ -127,15 +176,20 @@ export function SqliteStore(schema: Schema, db: Database): Store {
     };
     return Object.keys(resource.relationships).reduce((acc, relName) => {
       const rel = resource.relationships[relName];
-      const inverse = schema.resources[rel.type].relationships[rel.inverse];
-      const type =
-        rel.cardinality === 'one'
-          ? 'local'
-          : inverse.cardinality === 'one'
-          ? 'manyToOne'
-          : 'manyToMany';
+      const type = relationshipType(rel);
 
       return { ...acc, [type]: { ...acc[type], [relName]: rel } };
     }, init);
+  }
+
+  function relationshipType(
+    relationship: SchemaRelationship
+  ): 'local' | 'manyToOne' | 'manyToMany' {
+    const inverse = schema.resources[relationship.type].relationships[relationship.inverse];
+    return relationship.cardinality === 'one'
+      ? 'local'
+      : inverse.cardinality === 'one'
+      ? 'manyToOne'
+      : 'manyToMany';
   }
 }

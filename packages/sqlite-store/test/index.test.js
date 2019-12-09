@@ -414,7 +414,7 @@ test('merges into many-to-many relationship', async t => {
   await t.context.store.merge({
     type: 'powers',
     id: 'makeWish',
-    relationships: { bears: ['5'] },
+    relationships: { bears: ['3'] },
   });
 
   const result = await t.context.store.get({
@@ -428,12 +428,35 @@ test('merges into many-to-many relationship', async t => {
     id: 'makeWish',
     attributes: attrs.powers.makeWish,
     relationships: {
-      bears: [{ type: 'bears', id: '5', relationships: {}, attributes: attrs.bears['5'] }],
+      bears: [{ type: 'bears', id: '3', relationships: {}, attributes: attrs.bears['3'] }],
+    },
+  });
+
+  const result2 = await t.context.store.get({
+    type: 'bears',
+    id: '3',
+    relationships: { powers: {} },
+  });
+
+  t.deepEqual(result2, {
+    type: 'bears',
+    id: '3',
+    attributes: attrs.bears['3'],
+    relationships: {
+      powers: [
+        {
+          type: 'powers',
+          id: 'careBearStare',
+          relationships: {},
+          attributes: attrs.powers.careBearStare,
+        },
+        { type: 'powers', id: 'makeWish', relationships: {}, attributes: attrs.powers.makeWish },
+      ],
     },
   });
 });
 
-test.skip('deletes objects', async t => {
+test('deletes objects', async t => {
   await t.context.store.delete({ type: 'bears', id: '1' });
   const result = await t.context.store.get({
     type: 'homes',
@@ -444,7 +467,7 @@ test.skip('deletes objects', async t => {
   t.is(result.relationships.bears.length, 2);
 });
 
-test.skip('replaces a one-to-one relationship', async t => {
+test('replaces a one-to-one relationship', async t => {
   await t.context.store.replaceRelationship({
     type: 'bears',
     id: '2',
@@ -469,7 +492,7 @@ test.skip('replaces a one-to-one relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
-test.skip('replaces a one-to-many-relationship', async t => {
+test('replaces a one-to-many-relationship', async t => {
   await t.context.store.replaceRelationships({
     type: 'homes',
     id: '1',
@@ -502,10 +525,7 @@ test.skip('replaces a one-to-many-relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
-// TODO: test about many-to-many relationships
-// TODO: symmetric relationship testing
-
-test.skip('appends to a to-many relationship', async t => {
+test('appends to a to-many relationship', async t => {
   await t.context.store.appendRelationships({
     type: 'homes',
     id: '1',
@@ -530,7 +550,7 @@ test.skip('appends to a to-many relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 4);
 });
 
-test.skip('deletes a to-one relationship', async t => {
+test('deletes a to-one relationship', async t => {
   await t.context.store.deleteRelationship({
     type: 'bears',
     id: '1',
@@ -554,7 +574,7 @@ test.skip('deletes a to-one relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
-test.skip('deletes a to-many relationship', async t => {
+test('deletes a to-many relationship', async t => {
   await t.context.store.deleteRelationships({
     type: 'homes',
     id: '1',

@@ -72,7 +72,7 @@ test.beforeEach(async t => {
   const db = await sqlite.open(':memory:');
 
   await db.run(
-    'CREATE TABLE bears (id VARCHAR, name VARCHAR, gender VARCHAR, belly_badge VARCHAR, fur_color VARCHAR, home_id VARCHAR, best_friend_id)'
+    'CREATE TABLE bears (id VARCHAR, name VARCHAR, gender VARCHAR, belly_badge VARCHAR, fur_color VARCHAR, home_id VARCHAR, best_friend_id VARCHAR)'
   );
   await db.run(
     'CREATE TABLE homes (id VARCHAR, name VARCHAR, location VARCHAR, caring_meter REAL)'
@@ -87,7 +87,7 @@ test.beforeEach(async t => {
     "INSERT INTO bears VALUES ('2', 'Cheer Bear', 'female', 'rainbow', 'carnation pink', '1', '3')"
   );
   await db.run(
-    "INSERT INTO bears VALUES ('3', 'Wish Bear', 'female', 'shooting star', 'turquoise', '1', '')"
+    "INSERT INTO bears VALUES ('3', 'Wish Bear', 'female', 'shooting star', 'turquoise', '1', '2')"
   );
   await db.run(
     "INSERT INTO bears VALUES ('5', 'Wonderheart Bear', 'female', 'three hearts', 'pink', '', '')"
@@ -258,7 +258,7 @@ test('fetches multiple relationships of various types', async t => {
   });
 });
 
-test('handles relationships between the same type', async t => {
+test('handles symmetric relationships', async t => {
   const result = await t.context.store.get({
     type: 'bears',
     relationships: {
@@ -290,7 +290,14 @@ test('handles relationships between the same type', async t => {
       type: 'bears',
       id: '3',
       attributes: attrs.bears['3'],
-      relationships: { best_friend: null },
+      relationships: {
+        best_friend: {
+          type: 'bears',
+          id: '2',
+          attributes: attrs.bears['2'],
+          relationships: {},
+        },
+      },
     },
     {
       type: 'bears',

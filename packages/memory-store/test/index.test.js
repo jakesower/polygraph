@@ -40,6 +40,7 @@ const storeState = {
     },
     powers: {
       careBearStare: { name: 'Care Bear Stare', description: 'Defeats enemies and heals friends' },
+      makeWish: { name: 'Make a Wish', description: 'Makes a wish on Twinkers' },
     },
   },
   relationships: {
@@ -71,6 +72,8 @@ const grumpyBear = {
   },
 };
 
+const attrs = storeState.objects;
+
 test.beforeEach(t => {
   t.context = { store: MemoryStore(schema, storeState) };
 });
@@ -81,7 +84,7 @@ test('fetches a single resource', async t => {
   t.deepEqual(result, {
     type: 'bears',
     id: '1',
-    attributes: storeState.objects.bears['1'],
+    attributes: attrs.bears['1'],
     relationships: {},
   });
 });
@@ -99,25 +102,25 @@ test('fetches multiple resources', async t => {
     {
       type: 'bears',
       id: '1',
-      attributes: storeState.objects.bears['1'],
+      attributes: attrs.bears['1'],
       relationships: {},
     },
     {
       type: 'bears',
       id: '2',
-      attributes: storeState.objects.bears['2'],
+      attributes: attrs.bears['2'],
       relationships: {},
     },
     {
       type: 'bears',
       id: '3',
-      attributes: storeState.objects.bears['3'],
+      attributes: attrs.bears['3'],
       relationships: {},
     },
     {
       type: 'bears',
       id: '5',
-      attributes: storeState.objects.bears['5'],
+      attributes: attrs.bears['5'],
       relationships: {},
     },
   ]);
@@ -133,14 +136,38 @@ test('fetches a single resource with a single relationship', async t => {
   t.deepEqual(result, {
     type: 'bears',
     id: '1',
-    attributes: storeState.objects.bears['1'],
+    attributes: attrs.bears['1'],
     relationships: {
       home: {
         type: 'homes',
         id: '1',
-        attributes: storeState.objects.homes['1'],
+        attributes: attrs.homes['1'],
         relationships: {},
       },
+    },
+  });
+});
+
+test('fetches a single resource with many-to-many relationship', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { powers: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '1',
+    attributes: attrs.bears['1'],
+    relationships: {
+      powers: [
+        {
+          type: 'powers',
+          id: 'careBearStare',
+          attributes: attrs.powers['careBearStare'],
+          relationships: {},
+        },
+      ],
     },
   });
 });
@@ -162,30 +189,30 @@ test('fetches multiple relationships of various types', async t => {
   t.deepEqual(result, {
     type: 'bears',
     id: '1',
-    attributes: storeState.objects.bears['1'],
+    attributes: attrs.bears['1'],
     relationships: {
       home: {
         type: 'homes',
         id: '1',
-        attributes: storeState.objects.homes['1'],
+        attributes: attrs.homes['1'],
         relationships: {
           bears: [
             {
               type: 'bears',
               id: '1',
-              attributes: storeState.objects.bears['1'],
+              attributes: attrs.bears['1'],
               relationships: {},
             },
             {
               type: 'bears',
               id: '2',
-              attributes: storeState.objects.bears['2'],
+              attributes: attrs.bears['2'],
               relationships: {},
             },
             {
               type: 'bears',
               id: '3',
-              attributes: storeState.objects.bears['3'],
+              attributes: attrs.bears['3'],
               relationships: {},
             },
           ],
@@ -195,7 +222,7 @@ test('fetches multiple relationships of various types', async t => {
         {
           type: 'powers',
           id: 'careBearStare',
-          attributes: storeState.objects.powers.careBearStare,
+          attributes: attrs.powers.careBearStare,
           relationships: {},
         },
       ],
@@ -215,18 +242,18 @@ test('handles relationships between the same type', async t => {
     {
       type: 'bears',
       id: '1',
-      attributes: storeState.objects.bears['1'],
+      attributes: attrs.bears['1'],
       relationships: { best_friend: null },
     },
     {
       type: 'bears',
       id: '2',
-      attributes: storeState.objects.bears['2'],
+      attributes: attrs.bears['2'],
       relationships: {
         best_friend: {
           type: 'bears',
           id: '3',
-          attributes: storeState.objects.bears['3'],
+          attributes: attrs.bears['3'],
           relationships: {},
         },
       },
@@ -234,12 +261,12 @@ test('handles relationships between the same type', async t => {
     {
       type: 'bears',
       id: '3',
-      attributes: storeState.objects.bears['3'],
+      attributes: attrs.bears['3'],
       relationships: {
         best_friend: {
           type: 'bears',
           id: '2',
-          attributes: storeState.objects.bears['2'],
+          attributes: attrs.bears['2'],
           relationships: {},
         },
       },
@@ -247,14 +274,14 @@ test('handles relationships between the same type', async t => {
     {
       type: 'bears',
       id: '5',
-      attributes: storeState.objects.bears['5'],
+      attributes: attrs.bears['5'],
       relationships: { best_friend: null },
     },
   ]);
 });
 
 test('creates new objects without relationships', async t => {
-  t.context.store.merge(grumpyBear);
+  await t.context.store.merge(grumpyBear);
 
   const result = await t.context.store.get({
     type: 'bears',
@@ -289,7 +316,7 @@ test('creates new objects with a relationship', async t => {
       home: {
         type: 'homes',
         id: '1',
-        attributes: storeState.objects.homes['1'],
+        attributes: attrs.homes['1'],
         relationships: {},
       },
     },
@@ -300,7 +327,7 @@ test('merges into existing objects', async t => {
   await t.context.store.merge({
     type: 'bears',
     id: '2',
-    attributes: { fur_color: 'carnation pink' },
+    attributes: { fur_color: 'just pink' },
   });
 
   const result = await t.context.store.get({
@@ -311,8 +338,100 @@ test('merges into existing objects', async t => {
   t.deepEqual(result, {
     type: 'bears',
     id: '2',
-    attributes: { ...storeState.objects.bears['2'], fur_color: 'carnation pink' },
+    attributes: { ...attrs.bears['2'], fur_color: 'just pink' },
     relationships: {},
+  });
+});
+
+test('merges into one-to-many relationship', async t => {
+  await t.context.store.merge({
+    type: 'bears',
+    id: '1',
+    relationships: { home: '2' },
+  });
+
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { home: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '1',
+    attributes: attrs.bears['1'],
+    relationships: {
+      home: { type: 'homes', id: '2', relationships: {}, attributes: attrs.homes['2'] },
+    },
+  });
+});
+
+test('merges into many-to-one relationship', async t => {
+  await t.context.store.merge({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: ['1'] },
+  });
+
+  const result = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'homes',
+    id: '1',
+    attributes: attrs.homes['1'],
+    relationships: {
+      bears: [{ type: 'bears', id: '1', relationships: {}, attributes: attrs.bears['1'] }],
+    },
+  });
+});
+
+test('merges into many-to-many relationship', async t => {
+  await t.context.store.merge({
+    type: 'powers',
+    id: 'makeWish',
+    relationships: { bears: ['3'] },
+  });
+
+  const result = await t.context.store.get({
+    type: 'powers',
+    id: 'makeWish',
+    relationships: { bears: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'powers',
+    id: 'makeWish',
+    attributes: attrs.powers.makeWish,
+    relationships: {
+      bears: [{ type: 'bears', id: '3', relationships: {}, attributes: attrs.bears['3'] }],
+    },
+  });
+
+  const result2 = await t.context.store.get({
+    type: 'bears',
+    id: '3',
+    relationships: { powers: {} },
+  });
+
+  t.deepEqual(result2, {
+    type: 'bears',
+    id: '3',
+    attributes: attrs.bears['3'],
+    relationships: {
+      powers: [
+        {
+          type: 'powers',
+          id: 'careBearStare',
+          relationships: {},
+          attributes: attrs.powers.careBearStare,
+        },
+        { type: 'powers', id: 'makeWish', relationships: {}, attributes: attrs.powers.makeWish },
+      ],
+    },
   });
 });
 
@@ -384,9 +503,6 @@ test('replaces a one-to-many-relationship', async t => {
 
   t.is(careALotResult.relationships.bears.length, 2);
 });
-
-// TODO: test about many-to-many relationships
-// TODO: symmetric relationship testing
 
 test('appends to a to-many relationship', async t => {
   await t.context.store.appendRelationships({

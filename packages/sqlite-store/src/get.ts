@@ -98,15 +98,16 @@ export async function get(schema: Schema, db: Database, query: Query): Promise<R
       const { type, related } = tableMap[table];
 
       if (curVal) {
-        const relationships = related
-          .filter(r => r.cardinality === 'many')
-          .reduce(
-            (acc, { name, table }) => ({
-              ...acc,
-              [name]: [...curVal.relationships[name], row[`${table}$$id`]],
-            }),
-            curVal.relationships
-          );
+        const relationships = related.reduce(
+          (acc, { name, table, cardinality }) =>
+            cardinality === 'many'
+              ? {
+                  ...acc,
+                  [name]: [...curVal.relationships[name], row[`${table}$$id`]],
+                }
+              : { ...acc, [name]: row[`${table}$$id`] },
+          curVal.relationships
+        );
 
         return { ...curVal, relationships };
       }

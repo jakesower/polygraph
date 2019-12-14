@@ -1,0 +1,49 @@
+{
+  "name": "@polygraph/jsonapi-store",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src -d dist",
+    "start-server": "babel-node test/server.js",
+    "test": "NODE_ENV=test ava",
+    "ci": "start-server-and-test start-server http://localhost:8080 test",
+    "test:watch": "NODE_ENV=test ava -w"
+  },
+  "keywords": [],
+  "author": "Jake Sower",
+  "license": "CC BY-NC-SA",
+  "dependencies": {
+    "@polygraph/schema-utils": "^0.0.4",
+    "@polygraph/utils": "^0.0.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.7.5",
+    "@babel/node": "^7.7.4",
+    "@babel/preset-env": "^7.6.2",
+    "ava": "^2.4.0",
+    "axios": "^0.19.0",
+    "fortune": "^5.5.17",
+    "fortune-http": "^1.2.26",
+    "fortune-json-api": "^2.2.0",
+    "start-server-and-test": "^1.10.6",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "files": [
+      "test/*.test.js"
+    ],
+    "require": [
+      "esm"
+    ],
+    "extensions": [
+      "mjs"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "b73851fb5328b2ee1cfb9c97f12a08a69546cb79"
+}

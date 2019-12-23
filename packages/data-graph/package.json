@@ -1,0 +1,43 @@
+{
+  "name": "@polygraph/data-graph",
+  "version": "0.0.1",
+  "description": "The DataGraph structure an associated functions.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_ENV=test ava",
+    "test:watch": "NODE_ENV=test ava -w"
+  },
+  "keywords": [],
+  "author": "Jake Sower",
+  "license": "CC BY-NC-SA",
+  "dependencies": {
+    "@polygraph/utils": "^0.0.5"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "ava": "^2.4.0",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "files": [
+      "test/*.test.js"
+    ],
+    "require": [
+      "ts-node/register",
+      "esm"
+    ],
+    "extensions": [
+      "ts",
+      "mjs"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "b73851fb5328b2ee1cfb9c97f12a08a69546cb79"
+}

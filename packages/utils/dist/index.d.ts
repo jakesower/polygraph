@@ -63,6 +63,13 @@ export declare function mergeChildren(obj: {
         [k: string]: any;
     };
 };
+export declare function mergeWith<T, U, V>(base: {
+    [k: string]: T;
+}, other: {
+    [k: string]: U;
+}, combiner: (x: T, y: U) => V): {
+    [k: string]: T | U | V;
+};
 export declare function overPath(obj: any, path: any, fn: any): any;
 export declare function omitKeys<T>(obj: {
     [k: string]: T;
@@ -91,6 +98,7 @@ export declare function sortByAll<T>(fns: ((a: T, b: T) => number)[], xs: T[]): 
 export declare function sortWith<T>(fn: (a: T) => Ord, xs: T[]): T[];
 export declare function sortWithAll<T>(fns: ((a: T) => Ord)[], xs: T[]): T[];
 export declare function uniq<T>(xs: T[]): T[];
+export declare function uniqBy<T>(xs: T[], fn: (x: T) => Ord): T[];
 export declare function unnest<T>(xs: T[][]): T[];
 export declare function xprod<T, U>(xs: T[], ys: U[]): [T, U][];
 export declare function zipObj<T>(keys: string[], vals: T[]): {

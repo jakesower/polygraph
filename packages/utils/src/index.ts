@@ -4,11 +4,14 @@ export function appendKeys<T, K extends keyof T>(
   base: { [k: string]: T[K][] },
   other: { [k: string]: T[K][] }
 ): { [k: string]: T[K][] } {
-  const keys = Object.keys(base); // TODO: should be intersection of base and other keys
+  const keys = uniq([...Object.keys(base), ...Object.keys(other)]);
+
   let result = {};
+
   for (let key of keys) {
-    result[key] = [...base[key], ...other[key]];
+    result[key] = [...(base[key] || []), ...(other[key] || [])];
   }
+
   return result;
 }
 
@@ -158,6 +161,26 @@ export function mergeChildren(
     out[ks[i]] = { ...(obj[ks[i]] || {}), ...(ext[ks[i]] || {}) };
   }
   return out;
+}
+
+export function mergeWith<T, U, V>(
+  base: { [k: string]: T },
+  other: { [k: string]: U },
+  combiner: (x: T, y: U) => V
+): { [k: string]: T | U | V } {
+  const keys = uniq([...Object.keys(base), ...Object.keys(other)]);
+
+  let result = {};
+
+  for (let key of keys) {
+    result[key] = !(key in base)
+      ? other[key]
+      : !(key in other)
+      ? base[key]
+      : combiner(base[key], other[key]);
+  }
+
+  return result;
 }
 
 export function overPath(obj, path, fn) {
@@ -371,6 +394,21 @@ export function sortWithAll<T>(fns: ((a: T) => Ord)[], xs: T[]): T[] {
 
 export function uniq<T>(xs: T[]): T[] {
   return [...new Set(xs)];
+}
+
+export function uniqBy<T>(xs: T[], fn: (x: T) => Ord): T[] {
+  let hits = new Set();
+  let out = [];
+
+  for (const x of xs) {
+    const key = fn(x);
+    if (!hits.has(key)) {
+      hits.add(key);
+      out[out.length] = x;
+    }
+  }
+
+  return out;
 }
 
 export function unnest<T>(xs: T[][]): T[] {

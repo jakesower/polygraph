@@ -10,10 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 function appendKeys(base, other) {
-    const keys = Object.keys(base); // TODO: should be intersection of base and other keys
+    const keys = uniq([...Object.keys(base), ...Object.keys(other)]);
     let result = {};
     for (let key of keys) {
-        result[key] = [...base[key], ...other[key]];
+        result[key] = [...(base[key] || []), ...(other[key] || [])];
     }
     return result;
 }
@@ -143,6 +143,19 @@ function mergeChildren(obj, ext) {
     return out;
 }
 exports.mergeChildren = mergeChildren;
+function mergeWith(base, other, combiner) {
+    const keys = uniq([...Object.keys(base), ...Object.keys(other)]);
+    let result = {};
+    for (let key of keys) {
+        result[key] = !(key in base)
+            ? other[key]
+            : !(key in other)
+                ? base[key]
+                : combiner(base[key], other[key]);
+    }
+    return result;
+}
+exports.mergeWith = mergeWith;
 function overPath(obj, path, fn) {
     if (path.length === 0) {
         return null;
@@ -334,6 +347,19 @@ function uniq(xs) {
     return [...new Set(xs)];
 }
 exports.uniq = uniq;
+function uniqBy(xs, fn) {
+    let hits = new Set();
+    let out = [];
+    for (const x of xs) {
+        const key = fn(x);
+        if (!hits.has(key)) {
+            hits.add(key);
+            out[out.length] = x;
+        }
+    }
+    return out;
+}
+exports.uniqBy = uniqBy;
 function unnest(xs) {
     return makeFlat(xs, false);
 }

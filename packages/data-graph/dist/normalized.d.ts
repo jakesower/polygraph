@@ -1,4 +1,5 @@
 import { ResourceReference, NormalizedResource, Query } from './types';
+import { DataGraphClass } from './base';
 interface NormalizedGraph {
     resources: {
         [k: string]: {
@@ -7,10 +8,11 @@ interface NormalizedGraph {
     };
     root: ResourceReference | ResourceReference[];
 }
-declare class NormalizedDataGraphClass {
+export declare class NormalizedDataGraphClass {
     graph: NormalizedGraph;
     query: Query;
     constructor(graph: NormalizedGraph, query: Query);
+    base(): DataGraphClass;
 }
 export declare function NormalizedDataGraph(graph: NormalizedGraph, query: Query): NormalizedDataGraphClass;
 export {};

@@ -1,31 +1,90 @@
-import {
-  Database,
-  Schema,
-  Store,
-  ResourceGraph,
-  SchemaResource,
-  SchemaRelationship,
-  RelationshipReplacement,
-} from './types';
-import { pick } from '@polygraph/utils';
-import { joinTableName } from '@polygraph/schema-utils';
-import { type } from 'os';
+import { NormalizedDataGraph } from '@polygraph/data-graph';
+import { Schema, Store, Query } from './types';
+import { flatten, mapObj } from '@polygraph/utils';
 
 export function JsonApiStore(schema: Schema, transport: any): Store {
-  function getOne(resource: string, id: string, params: { [k: string]: string }): Promise<any> {
-    return transport.get(`/${resource}/${id}`, { params, headers: { 'Content-Type': 'application/vnd.api+json' } });
+  async function getOne(query: Query): Promise<any> {
+    const { type, id } = query;
+    const params = getParams(query);
+
+    const response = await transport.get(`/${type}/${id}`, {
+      params,
+      headers: { 'Content-Type': 'application/vnd.api+json' },
+    });
+
+    if (response.status === 404) return null;
+
+    const data = response.data.data;
+    const included = response.data.included || [];
+
+    const resources = keyResources([data, ...included]);
+
+    const dataGraph = NormalizedDataGraph(
+      {
+        root: data,
+        resources,
+      },
+      query
+    );
+
+    return dataGraph.base().root;
+  }
+
+  async function getMany(query: Query) {
+    const response = await transport.get(`/${query.type}`, {
+      headers: { 'Content-Type': 'application/vnd.api+json' },
+    });
+
+    const data = response.data.data;
+    const included = response.data.included || [];
+
+    const resources = keyResources([...data, ...included]);
+
+    const dataGraph = NormalizedDataGraph(
+      {
+        root: data,
+        resources,
+      },
+      query
+    );
+
+    return dataGraph.base().root;
+  }
+
+  function keyResources(resources) {
+    const extractRels = resource => mapObj(resource.relationships, (r: any) => r.data);
+
+    return resources.reduce((resources, resource) => {
+      const { type, id } = resource;
+      const extracted = resource.relationships
+        ? { ...resource, relationships: extractRels(resource) }
+        : resource;
+
+      if (!(type in resources)) {
+        return { ...resources, [type]: { [id]: extracted } };
+      }
+
+      return { ...resources, [type]: { ...resources[type], [id]: extracted } };
+    }, {});
+  }
+
+  function getParams(query) {
+    // include
+    const getInclude = (node, accum) =>
+      node.relationships
+        ? Object.keys(node.relationships).map(r => getInclude(node.relationships[r], [...accum, r]))
+        : accum.join('.');
+
+    const include = flatten(getInclude(query, []));
+
+    return {
+      ...(include.length > 0 ? { include: include.join(',') } : {}),
+    };
   }
 
   return {
     get: async function(query) {
-      const { data } = await getOne(query.type, query.id, {});
-
-      return {
-        type: data.type,
-        id: data.id,
-        attributes: data.attributes,
-        relationships: {},
-      };
+      return query.id ? getOne(query) : getMany(query);
     },
     //   merge: async function(rawGraph: ResourceGraph) {
     //     const graph = { attributes: {}, relationships: {}, ...rawGraph };

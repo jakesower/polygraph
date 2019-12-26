@@ -30,6 +30,7 @@ export declare function findObj<T>(obj: {
     [k: string]: T;
 }, predicateFn: (x: T) => boolean): T | null;
 export declare function flatMap<T>(xs: T[], fn: (x: T) => T[]): T[];
+export declare function flatten<T>(xs: T[][]): T[];
 export declare function inlineKey<T, K extends keyof T>(obj: T): {
     [k: string]: T[K] & {
         key: string;

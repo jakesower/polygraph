@@ -1,4 +1,4 @@
-import test from 'ava';
+import { serial as test } from 'ava';
 import axios from 'axios';
 import { expandSchema } from '@polygraph/schema-utils';
 import { readFileSync } from 'fs';
@@ -69,14 +69,19 @@ const attrs = {
   },
 };
 
-const store = JsonApiStore(schema, axios);
+const axiosInstance = axios.create({
+  baseURL: 'http://localhost:8080',
+  validateStatus: () => true,
+});
+
+const store = JsonApiStore(schema, axiosInstance);
 
 test.beforeEach(async t => {
-  await axios.get('http://localhost:8080/reset');
+  await axiosInstance.get('/reset');
   t.context = { store };
 });
 
-test.only('fetches a single resource', async t => {
+test('fetches a single resource', async t => {
   const result = await t.context.store.get({ type: 'bears', id: '1' });
 
   t.deepEqual(result, {
@@ -278,7 +283,7 @@ test('handles relationships between the same type', async t => {
   ]);
 });
 
-test('creates new objects without relationships', async t => {
+test.skip('creates new objects without relationships', async t => {
   await t.context.store.merge(grumpyBear);
 
   const result = await t.context.store.get({
@@ -294,7 +299,7 @@ test('creates new objects without relationships', async t => {
   });
 });
 
-test('creates new objects with a relationship', async t => {
+test.skip('creates new objects with a relationship', async t => {
   await t.context.store.merge({
     ...grumpyBear,
     relationships: { home: '1' },
@@ -321,7 +326,7 @@ test('creates new objects with a relationship', async t => {
   });
 });
 
-test('merges into existing objects', async t => {
+test.skip('merges into existing objects', async t => {
   await t.context.store.merge({
     type: 'bears',
     id: '2',
@@ -341,7 +346,7 @@ test('merges into existing objects', async t => {
   });
 });
 
-test('merges into one-to-many relationship', async t => {
+test.skip('merges into one-to-many relationship', async t => {
   await t.context.store.merge({
     type: 'bears',
     id: '1',
@@ -364,7 +369,7 @@ test('merges into one-to-many relationship', async t => {
   });
 });
 
-test('merges into many-to-one relationship', async t => {
+test.skip('merges into many-to-one relationship', async t => {
   await t.context.store.merge({
     type: 'homes',
     id: '1',
@@ -387,7 +392,7 @@ test('merges into many-to-one relationship', async t => {
   });
 });
 
-test('merges into many-to-many relationship', async t => {
+test.skip('merges into many-to-many relationship', async t => {
   await t.context.store.merge({
     type: 'powers',
     id: 'makeWish',
@@ -433,7 +438,7 @@ test('merges into many-to-many relationship', async t => {
   });
 });
 
-test('deletes objects', async t => {
+test.skip('deletes objects', async t => {
   await t.context.store.delete({ type: 'bears', id: '1' });
   const result = await t.context.store.get({
     type: 'homes',
@@ -444,7 +449,7 @@ test('deletes objects', async t => {
   t.is(result.relationships.bears.length, 2);
 });
 
-test('replaces a one-to-one relationship', async t => {
+test.skip('replaces a one-to-one relationship', async t => {
   await t.context.store.replaceRelationship({
     type: 'bears',
     id: '2',
@@ -469,7 +474,7 @@ test('replaces a one-to-one relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
-test('replaces a one-to-many-relationship', async t => {
+test.skip('replaces a one-to-many-relationship', async t => {
   await t.context.store.replaceRelationships({
     type: 'homes',
     id: '1',
@@ -502,7 +507,7 @@ test('replaces a one-to-many-relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
-test('appends to a to-many relationship', async t => {
+test.skip('appends to a to-many relationship', async t => {
   await t.context.store.appendRelationships({
     type: 'homes',
     id: '1',
@@ -527,7 +532,7 @@ test('appends to a to-many relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 4);
 });
 
-test('deletes a to-one relationship', async t => {
+test.skip('deletes a to-one relationship', async t => {
   await t.context.store.deleteRelationship({
     type: 'bears',
     id: '1',
@@ -551,7 +556,7 @@ test('deletes a to-one relationship', async t => {
   t.is(careALotResult.relationships.bears.length, 2);
 });
 
-test('deletes a to-many relationship', async t => {
+test.skip('deletes a to-many relationship', async t => {
   await t.context.store.deleteRelationships({
     type: 'homes',
     id: '1',

@@ -41,6 +41,7 @@ class DataGraphClass {
         return normalized_1.NormalizedDataGraph({ root: normalizedRoot, resources }, query);
     }
 }
+exports.DataGraphClass = DataGraphClass;
 function DataGraph(root, query) {
     return new DataGraphClass(root, query);
 }

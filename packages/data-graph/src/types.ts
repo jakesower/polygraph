@@ -15,6 +15,10 @@ export interface Resource {
   relationships: { [k: string]: Resource | Resource[] };
 }
 
+export interface ResourceLike extends Resource {
+  [k: string]: any;
+}
+
 export interface NormalizedResource {
   type: string;
   id: string;

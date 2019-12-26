@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "dist/index.js",
   "scripts": {
-    "build": "babel src -d dist",
+    "build": "tsc",
     "start-server": "babel-node test/server.js",
     "test": "NODE_ENV=test ava",
     "ci": "start-server-and-test start-server http://localhost:8080 test",
@@ -14,7 +14,8 @@
   "license": "CC BY-NC-SA",
   "dependencies": {
     "@polygraph/schema-utils": "^0.0.4",
-    "@polygraph/utils": "^0.0.2"
+    "@polygraph/utils": "^0.0.5",
+    "@polygraph/data-graph": "^0.0.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.2",
@@ -36,10 +37,12 @@
       "test/*.test.js"
     ],
     "require": [
-      "esm"
+      "esm",
+      "ts-node/register"
     ],
     "extensions": [
-      "mjs"
+      "mjs",
+      "ts"
     ]
   },
   "publishConfig": {

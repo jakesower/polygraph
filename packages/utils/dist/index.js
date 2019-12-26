@@ -79,6 +79,10 @@ function flatMap(xs, fn) {
     return makeFlat(xs.map(fn), false);
 }
 exports.flatMap = flatMap;
+function flatten(xs) {
+    return makeFlat(xs, true);
+}
+exports.flatten = flatten;
 // e.g. {a: {inner: 'thing'}, b: {other: 'item'}} => {a: {key: 'a', inner: 'thing'}, b: {key: 'b', other: 'item'}}
 function inlineKey(obj) {
     let result = {};

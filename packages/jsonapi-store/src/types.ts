@@ -83,7 +83,7 @@ interface MultiDeleteInterface extends DeleteInterface {
 }
 
 export interface Store {
-  get?: (query: Query) => Promise<Result>;
+  get: (query: Query) => Promise<Result>;
   merge?: (resourceGraph: ResourceGraph) => Promise<any>;
   delete?: (resource: ResourceGraph) => Promise<any>;
   replaceRelationship?: (resource: RelationshipReplacement) => Promise<any>;

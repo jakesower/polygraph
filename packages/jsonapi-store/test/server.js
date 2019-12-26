@@ -74,20 +74,20 @@ async function reset() {
     name: 'Care-a-Lot',
     location: 'Kingdom of Caring',
     caring_meter: 1,
-    bears: ['1'],
+    bears: ['1', '2', '3'],
   });
   await store.create('homes', {
     id: '2',
     name: 'Forest of Feelings',
     location: 'Kingdom of Caring',
     caring_meter: 1,
-    bears: ['1'],
+    bears: [],
   });
 
   await store.create('powers', {
     id: 'careBearStare',
     name: 'Care Bear Stare',
-    description: 'Purges evil',
+    description: 'Purges evil.',
     bears: ['1', '2', '3'],
   });
 
@@ -105,6 +105,8 @@ const listener = fortuneHTTP(store, {
 });
 
 const server = http.createServer((req, res) => {
+  console.log(req.url);
+
   if (req.url === '/reset') {
     reset();
     return res.end('reset');

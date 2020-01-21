@@ -9,6 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+function append(xs, ys) {
+    return [...xs, ...ys];
+}
+exports.append = append;
 function appendKeys(base, other) {
     const keys = uniq([...Object.keys(base), ...Object.keys(other)]);
     let result = {};
@@ -18,6 +22,10 @@ function appendKeys(base, other) {
     return result;
 }
 exports.appendKeys = appendKeys;
+function applyOrMap(maybeArray, fn) {
+    return Array.isArray(maybeArray) ? maybeArray.map(fn) : fn(maybeArray);
+}
+exports.applyOrMap = applyOrMap;
 function assignChildren(objs) {
     let out = {};
     objs.forEach(obj => {
@@ -79,10 +87,32 @@ function flatMap(xs, fn) {
     return makeFlat(xs.map(fn), false);
 }
 exports.flatMap = flatMap;
+function forEachObj(obj, fn) {
+    const keys = Object.keys(obj);
+    keys.forEach(k => fn(obj[k], k));
+}
+exports.forEachObj = forEachObj;
 function flatten(xs) {
     return makeFlat(xs, true);
 }
 exports.flatten = flatten;
+function indexOn(xs, keys) {
+    let out = {};
+    const [first, ...rest] = keys;
+    if (rest.length === 0) {
+        for (let x of xs) {
+            out[x[first]] = x;
+        }
+        return out;
+    }
+    for (let x of xs) {
+        const k = x[first];
+        out[k] = out[k] || [];
+        out[k][out[k].length] = x;
+    }
+    return mapObj(out, ys => indexOn(ys, rest));
+}
+exports.indexOn = indexOn;
 // e.g. {a: {inner: 'thing'}, b: {other: 'item'}} => {a: {key: 'a', inner: 'thing'}, b: {key: 'b', other: 'item'}}
 function inlineKey(obj) {
     let result = {};
@@ -198,6 +228,13 @@ function parseQueryParams(rawParams) {
     return out;
 }
 exports.parseQueryParams = parseQueryParams;
+function pathOr(obj, path, otherwise) {
+    if (path.length === 0)
+        return true;
+    const [first, ...rest] = path;
+    return first in obj ? pathOr(obj[first], rest, otherwise) : otherwise;
+}
+exports.pathOr = pathOr;
 function pick(obj, keys) {
     const l = keys.length;
     let out = {};

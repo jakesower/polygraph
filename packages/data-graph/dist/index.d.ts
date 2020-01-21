@@ -1,3 +1,5 @@
 import { DataGraph } from './base';
 import { NormalizedDataGraph } from './normalized';
-export { DataGraph, NormalizedDataGraph };
+import { operationsMap } from './map-operations';
+import { decomposeGraph, flattenGraph } from './utils';
+export { DataGraph, NormalizedDataGraph, operationsMap, decomposeGraph, flattenGraph };

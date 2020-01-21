@@ -1,3 +1,5 @@
+import { Resource } from '@polygraph/data-graph/dist/types';
+
 export interface Database {
   run: (query: string, ...args: any) => Promise<any>;
   get: (query: string, ...args: any) => Promise<any>;
@@ -84,6 +86,8 @@ interface MultiDeleteInterface extends DeleteInterface {
 
 export interface Store {
   get: (query: Query) => Promise<Result>;
+  create: (resource: Resource) => Promise<any>;
+  update: (resource: Resource) => Promise<any>;
   merge?: (resourceGraph: ResourceGraph) => Promise<any>;
   delete?: (resource: ResourceGraph) => Promise<any>;
   replaceRelationship?: (resource: RelationshipReplacement) => Promise<any>;

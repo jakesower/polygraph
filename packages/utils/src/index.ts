@@ -1,5 +1,9 @@
 type Ord = number | string | boolean | Date;
 
+export function append<T, U>(xs: T[], ys: U[]): (T | U)[] {
+  return [...xs, ...ys];
+}
+
 export function appendKeys<T, K extends keyof T>(
   base: { [k: string]: T[K][] },
   other: { [k: string]: T[K][] }
@@ -13,6 +17,10 @@ export function appendKeys<T, K extends keyof T>(
   }
 
   return result;
+}
+
+export function applyOrMap(maybeArray, fn) {
+  return Array.isArray(maybeArray) ? maybeArray.map(fn) : fn(maybeArray);
 }
 
 export function assignChildren(
@@ -86,10 +94,35 @@ export function flatMap<T>(xs: T[], fn: (x: T) => T[]): T[] {
   return makeFlat(xs.map(fn), false);
 }
 
+export function forEachObj<T, U>(obj: { [k in string]: T }, fn: (x: T, idx: string) => any): void {
+  const keys = Object.keys(obj);
+  keys.forEach(k => fn(obj[k], k));
+}
+
 export function flatten<T>(xs: T[][]): T[] {
   return makeFlat(xs, true);
 }
 
+export function indexOn(xs, keys) {
+  let out = {};
+  const [first, ...rest] = keys;
+
+  if (rest.length === 0) {
+    for (let x of xs) {
+      out[x[first]] = x;
+    }
+
+    return out;
+  }
+
+  for (let x of xs) {
+    const k = x[first];
+    out[k] = out[k] || [];
+    out[k][out[k].length] = x;
+  }
+
+  return mapObj(out, ys => indexOn(ys, rest));
+}
 
 // e.g. {a: {inner: 'thing'}, b: {other: 'item'}} => {a: {key: 'a', inner: 'thing'}, b: {key: 'b', other: 'item'}}
 export function inlineKey<T, K extends keyof T>(obj: T): { [k: string]: T[K] & { key: string } } {
@@ -235,6 +268,14 @@ export function parseQueryParams(rawParams) {
   });
 
   return out;
+}
+
+export function pathOr(obj, path, otherwise) {
+  if (path.length === 0) return true;
+
+  const [first, ...rest] = path;
+
+  return first in obj ? pathOr(obj[first], rest, otherwise) : otherwise;
 }
 
 export function pick<T>(obj: { [k: string]: T }, keys: string[]): { [k: string]: T } {

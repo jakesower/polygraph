@@ -88,7 +88,7 @@ export interface Store {
   delete: (resource: ResourceGraph) => Promise<any>;
   replaceRelationship: (resource: RelationshipReplacement) => Promise<any>;
   replaceRelationships: (resource: RelationshipReplacements) => Promise<any>;
-  appendRelationships: (resource: RelationshipReplacementss) => Promise<any>;
+  appendRelationships: (resource: RelationshipReplacements) => Promise<any>;
   deleteRelationship: (resource: DeleteInterface) => Promise<any>;
   deleteRelationships: (resource: MultiDeleteInterface) => Promise<any>;
 }

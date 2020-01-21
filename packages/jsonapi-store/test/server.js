@@ -3,38 +3,47 @@ import fortune from 'fortune';
 import fortuneHTTP from 'fortune-http';
 import jsonApiSerializer from 'fortune-json-api';
 
-let store;
+const store = fortune({
+  bears: {
+    name: String,
+    gender: String,
+    belly_badge: String,
+    fur_color: String,
+
+    home: ['homes', 'bears'],
+    powers: [Array('powers'), 'bears'],
+    best_friend: ['bears', 'best_friend'],
+  },
+
+  homes: {
+    name: String,
+    location: String,
+    caring_meter: Number,
+
+    bears: [Array('bears'), 'home'],
+  },
+
+  powers: {
+    name: String,
+    description: String,
+
+    bears: [Array('bears'), 'powers'],
+  },
+});
 
 async function reset() {
-  store = fortune({
-    bears: {
-      name: String,
-      gender: String,
-      belly_badge: String,
-      fur_color: String,
+  await Promise.all(
+    ['bears', 'homes', 'powers'].map(async type => {
+      const records = await store.find(type);
 
-      home: ['homes', 'bears'],
-      powers: [Array('powers'), 'bears'],
-      best_friend: ['bears', 'best_friend'],
-    },
-
-    homes: {
-      name: String,
-      location: String,
-      caring_meter: Number,
-
-      bears: [Array('bears'), 'home'],
-    },
-
-    powers: {
-      name: String,
-      description: String,
-
-      bears: [Array('bears'), 'powers'],
-    },
-  });
-
-  // fortune creates the relationships on the creation of the second related resource
+      if (records.payload.count > 0) {
+        return store.delete(
+          type,
+          records.payload.records.map(x => x.id)
+        );
+      }
+    })
+  );
 
   await store.create('bears', {
     id: '1',
@@ -101,15 +110,16 @@ async function reset() {
 reset();
 
 const listener = fortuneHTTP(store, {
-  serializers: [[jsonApiSerializer, { inflectType: false, inflectKeys: false }]],
+  serializers: [
+    [jsonApiSerializer, { inflectType: false, inflectKeys: false, castNumericIds: false }],
+  ],
 });
 
 const server = http.createServer((req, res) => {
-  console.log(req.url);
+  console.log(`${req.method} ${req.url}`);
 
   if (req.url === '/reset') {
-    reset();
-    return res.end('reset');
+    return reset().then(() => res.end('reset'));
   }
 
   listener(req, res);

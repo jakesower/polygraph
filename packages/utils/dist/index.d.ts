@@ -1,4 +1,5 @@
 declare type Ord = number | string | boolean | Date;
+export declare function append<T, U>(xs: T[], ys: U[]): (T | U)[];
 export declare function appendKeys<T, K extends keyof T>(base: {
     [k: string]: T[K][];
 }, other: {
@@ -6,6 +7,7 @@ export declare function appendKeys<T, K extends keyof T>(base: {
 }): {
     [k: string]: T[K][];
 };
+export declare function applyOrMap(maybeArray: any, fn: any): any;
 export declare function assignChildren(objs: {
     [k: string]: {
         [k: string]: any;
@@ -30,7 +32,11 @@ export declare function findObj<T>(obj: {
     [k: string]: T;
 }, predicateFn: (x: T) => boolean): T | null;
 export declare function flatMap<T>(xs: T[], fn: (x: T) => T[]): T[];
+export declare function forEachObj<T, U>(obj: {
+    [k in string]: T;
+}, fn: (x: T, idx: string) => any): void;
 export declare function flatten<T>(xs: T[][]): T[];
+export declare function indexOn(xs: any, keys: any): any;
 export declare function inlineKey<T, K extends keyof T>(obj: T): {
     [k: string]: T[K] & {
         key: string;
@@ -78,6 +84,7 @@ export declare function omitKeys<T>(obj: {
     [k: string]: T;
 };
 export declare function parseQueryParams(rawParams: any): {};
+export declare function pathOr(obj: any, path: any, otherwise: any): any;
 export declare function pick<T>(obj: {
     [k: string]: T;
 }, keys: string[]): {

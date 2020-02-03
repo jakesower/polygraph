@@ -7,6 +7,7 @@ export interface Schema {
 }
 export interface SchemaResource {
     key: string;
+    singular?: string;
     attributes: {
         [k: string]: SchemaAttribute;
     };

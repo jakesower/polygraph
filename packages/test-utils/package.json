@@ -1,0 +1,22 @@
+{
+  "name": "@polygraph/test-utils",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo 'oh hey'"
+  },
+  "keywords": [],
+  "author": "Jake Sower",
+  "license": "ISC",
+  "devDependencies": {
+    "@polygraph/schema-utils": "0.0.5",
+    "typescript": "^3.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "b73851fb5328b2ee1cfb9c97f12a08a69546cb79"
+}

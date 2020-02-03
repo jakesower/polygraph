@@ -21,10 +21,10 @@ function decomposeGraph(fullGraph) {
     return { vertices: [{ type, id }, ...related.vertices], edges: related.edges };
 }
 exports.decomposeGraph = decomposeGraph;
-function flattenGraph(fullGraph) {
+function flattenGraph(fullGraph, schema) {
     const nextRels = utils_1.mapObj(fullGraph.relationships || {}, rels => utils_1.applyOrMap(rels, ({ id, type }) => ({ id, type })));
     let out = [Object.assign(Object.assign({}, fullGraph), { relationships: nextRels })];
-    utils_1.forEachObj(fullGraph.relationships || {}, (relResources, relName) => {
+    utils_1.forEachObj(fullGraph.relationships || {}, relResources => {
         const ary = Array.isArray(relResources) ? relResources : [relResources];
         ary.map(flattenGraph).forEach(d => {
             out = [...out, ...d];

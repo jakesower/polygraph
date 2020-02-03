@@ -25,6 +25,7 @@
     "resource": {
       "type": "object",
       "properties": {
+        "singular": { "type": "string" },
         "attributes": {
           "$ref": "#/definitions/attributes"
         },

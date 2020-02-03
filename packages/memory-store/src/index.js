@@ -25,6 +25,8 @@ export function MemoryStore(schema, baseState) {
   return {
     get,
     merge,
+    update: merge,
+    create: merge,
     delete: delete_,
     appendRelationships,
     replaceRelationship: args => replaceRelationships({ ...args, foreignIds: [args.foreignId] }),

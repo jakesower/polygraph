@@ -4,7 +4,7 @@ interface Decomposed extends Object {
     edges: Edge[];
 }
 export declare function decomposeGraph(fullGraph: ResourceGraph): Decomposed;
-export declare function flattenGraph(fullGraph: ResourceGraph): {
+export declare function flattenGraph(fullGraph: ResourceGraph, schema: any): {
     relationships: {
         [x: string]: any;
     };

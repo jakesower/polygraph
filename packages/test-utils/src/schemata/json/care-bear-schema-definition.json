@@ -1,0 +1,62 @@
+{
+  "title": "Care Bear Schema",
+  "resources": {
+    "bears": {
+      "singular": "bear",
+      "attributes": {
+        "name": { "type": "string" },
+        "gender": { "type": "string" },
+        "belly_badge": { "type": "string" },
+        "fur_color": { "type": "string" }
+      },
+      "relationships": {
+        "home": {
+          "type": "homes",
+          "cardinality": "one",
+          "inverse": "bears"
+        },
+        "powers": {
+          "type": "powers",
+          "cardinality": "many",
+          "inverse": "bears"
+        },
+        "best_friend": {
+          "type": "bears",
+          "cardinality": "one",
+          "inverse": "best_friend"
+        }
+      }
+    },
+
+    "homes": {
+      "singular": "home",
+      "attributes": {
+        "name": { "type": "string" },
+        "location": { "type": "string" },
+        "caring_meter": { "type": "number" }
+      },
+      "relationships": {
+        "bears": {
+          "type": "bears",
+          "cardinality": "many",
+          "inverse": "home"
+        }
+      }
+    },
+
+    "powers": {
+      "singular": "power",
+      "attributes": {
+        "name": { "type": "string" },
+        "description": { "type": "text" }
+      },
+      "relationships": {
+        "bears": {
+          "type": "bears",
+          "cardinality": "many",
+          "inverse": "powers"
+        }
+      }
+    }
+  }
+}

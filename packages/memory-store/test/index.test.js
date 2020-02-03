@@ -281,7 +281,7 @@ test('handles relationships between the same type', async t => {
 });
 
 test('creates new objects without relationships', async t => {
-  await t.context.store.merge(grumpyBear);
+  await t.context.store.create(grumpyBear);
 
   const result = await t.context.store.get({
     type: 'bears',
@@ -297,6 +297,163 @@ test('creates new objects without relationships', async t => {
 });
 
 test('creates new objects with a relationship', async t => {
+  await t.context.store.create({
+    ...grumpyBear,
+    relationships: { home: '1' },
+  });
+
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '4',
+    relationships: { home: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '4',
+    attributes: grumpyBear.attributes,
+    relationships: {
+      home: {
+        type: 'homes',
+        id: '1',
+        attributes: attrs.homes['1'],
+        relationships: {},
+      },
+    },
+  });
+});
+
+test('updates existing objects', async t => {
+  await t.context.store.update({
+    type: 'bears',
+    id: '2',
+    attributes: { fur_color: 'just pink' },
+  });
+
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '2',
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '2',
+    attributes: { ...attrs.bears['2'], fur_color: 'just pink' },
+    relationships: {},
+  });
+});
+
+test('updates with one-to-many relationship', async t => {
+  await t.context.store.update({
+    type: 'bears',
+    id: '1',
+    relationships: { home: '2' },
+  });
+
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '1',
+    relationships: { home: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '1',
+    attributes: attrs.bears['1'],
+    relationships: {
+      home: { type: 'homes', id: '2', relationships: {}, attributes: attrs.homes['2'] },
+    },
+  });
+});
+
+test('updates with a many-to-one relationship', async t => {
+  await t.context.store.update({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: ['1'] },
+  });
+
+  const result = await t.context.store.get({
+    type: 'homes',
+    id: '1',
+    relationships: { bears: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'homes',
+    id: '1',
+    attributes: attrs.homes['1'],
+    relationships: {
+      bears: [{ type: 'bears', id: '1', relationships: {}, attributes: attrs.bears['1'] }],
+    },
+  });
+});
+
+test('updates with many-to-many relationship', async t => {
+  await t.context.store.update({
+    type: 'powers',
+    id: 'makeWish',
+    relationships: { bears: ['3'] },
+  });
+
+  const result = await t.context.store.get({
+    type: 'powers',
+    id: 'makeWish',
+    relationships: { bears: {} },
+  });
+
+  t.deepEqual(result, {
+    type: 'powers',
+    id: 'makeWish',
+    attributes: attrs.powers.makeWish,
+    relationships: {
+      bears: [{ type: 'bears', id: '3', relationships: {}, attributes: attrs.bears['3'] }],
+    },
+  });
+
+  const result2 = await t.context.store.get({
+    type: 'bears',
+    id: '3',
+    relationships: { powers: {} },
+  });
+
+  t.deepEqual(result2, {
+    type: 'bears',
+    id: '3',
+    attributes: attrs.bears['3'],
+    relationships: {
+      powers: [
+        {
+          type: 'powers',
+          id: 'careBearStare',
+          relationships: {},
+          attributes: attrs.powers.careBearStare,
+        },
+        { type: 'powers', id: 'makeWish', relationships: {}, attributes: attrs.powers.makeWish },
+      ],
+    },
+  });
+});
+
+// merge stuff
+
+test('creates new objects without relationships via merge', async t => {
+  await t.context.store.merge(grumpyBear);
+
+  const result = await t.context.store.get({
+    type: 'bears',
+    id: '4',
+  });
+
+  t.deepEqual(result, {
+    type: 'bears',
+    id: '4',
+    attributes: grumpyBear.attributes,
+    relationships: {},
+  });
+});
+
+test('creates new objects with a relationship via merge', async t => {
   await t.context.store.merge({
     ...grumpyBear,
     relationships: { home: '1' },
@@ -509,7 +666,7 @@ test('appends to a to-many relationship', async t => {
     type: 'homes',
     id: '1',
     relationship: 'bears',
-    foreignIds: ['1', '5'],
+    foreignIds: ['5'],
   });
 
   const bearResult = await t.context.store.get({
@@ -558,12 +715,12 @@ test('deletes a to-many relationship', async t => {
     type: 'homes',
     id: '1',
     relationship: 'bears',
-    foreignIds: ['1'],
+    foreignIds: ['2'],
   });
 
   const bearResult = await t.context.store.get({
     type: 'bears',
-    id: '1',
+    id: '2',
     relationships: { home: {} },
   });
 

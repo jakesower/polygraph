@@ -14,25 +14,28 @@
   "dependencies": {
     "@polygraph/schema-utils": "^0.0.5",
     "@polygraph/utils": "^0.0.2",
-    "graphql": "^14.6.0"
+    "graphql": "^14.6.0",
+    "graphql-tools": "^4.0.6"
   },
   "devDependencies": {
+    "@ava/babel": "^1.0.0",
     "@babel/cli": "^7.6.2",
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "@polygraph/memory-store": "0.0.4",
     "@polygraph/test-utils": "0.0.0",
-    "ava": "^2.4.0",
+    "ava": "^3.2.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5"
   },
   "ava": {
-    "compileEnhancements": false,
+    "babel": {
+      "compileEnhancements": false
+    },
     "files": [
       "test/*.test.js"
     ],
     "require": [
-      "esm",
       "ts-node/register"
     ],
     "extensions": [

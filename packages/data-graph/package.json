@@ -1,6 +1,6 @@
 {
   "name": "@polygraph/data-graph",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The DataGraph structure an associated functions.",
   "main": "dist/index.js",
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "@polygraph/jsonapi-store",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -13,8 +13,8 @@
   "author": "Jake Sower",
   "license": "CC BY-NC-SA",
   "dependencies": {
-    "@polygraph/data-graph": "^0.0.2",
-    "@polygraph/schema-utils": "^0.0.5",
+    "@polygraph/data-graph": "^0.0.3",
+    "@polygraph/schema-utils": "^0.0.6",
     "@polygraph/utils": "^0.0.6"
   },
   "devDependencies": {

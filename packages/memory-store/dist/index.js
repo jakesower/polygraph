@@ -33,6 +33,8 @@ function MemoryStore(schema, baseState) {
   return {
     get: get,
     merge: merge,
+    update: merge,
+    create: merge,
     delete: delete_,
     appendRelationships: appendRelationships,
     replaceRelationship: function replaceRelationship(args) {

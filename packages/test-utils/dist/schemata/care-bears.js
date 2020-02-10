@@ -4,7 +4,7 @@ exports.default = {
     title: 'Care Bear Schema',
     resources: {
         bears: {
-            singular: 'Bear',
+            singular: 'bear',
             attributes: {
                 name: {
                     type: 'string',
@@ -46,7 +46,7 @@ exports.default = {
             key: 'bears',
         },
         homes: {
-            singular: 'Home',
+            singular: 'home',
             attributes: {
                 name: {
                     type: 'string',
@@ -72,7 +72,7 @@ exports.default = {
             key: 'homes',
         },
         powers: {
-            singular: 'Power',
+            singular: 'power',
             attributes: {
                 name: {
                     type: 'string',

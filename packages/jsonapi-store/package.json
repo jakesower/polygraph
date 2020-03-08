@@ -18,6 +18,7 @@
     "@polygraph/utils": "^0.0.6"
   },
   "devDependencies": {
+    "@ava/babel": "^1.0.1",
     "@babel/cli": "^7.6.2",
     "@babel/core": "^7.7.5",
     "@babel/node": "^7.7.4",
@@ -29,7 +30,10 @@
     "fortune-json-api": "^2.2.3",
     "start-server-and-test": "^1.10.6",
     "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.3",
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
   },
   "ava": {
     "compileEnhancements": false,

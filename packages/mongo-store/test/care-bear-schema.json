@@ -12,17 +12,20 @@
         "home": {
           "type": "homes",
           "cardinality": "one",
-          "inverse": "bears"
+          "inverse": "bears",
+          "foreign_key": "home"
         },
         "powers": {
           "type": "powers",
           "cardinality": "many",
-          "inverse": "bears"
+          "inverse": "bears",
+          "foreign_keys": "powers"
         },
         "best_friend": {
           "type": "bears",
           "cardinality": "one",
-          "inverse": "best_friend"
+          "inverse": "best_friend",
+          "foreign_key": "best_friend"
         }
       }
     },
@@ -37,7 +40,8 @@
         "bears": {
           "type": "bears",
           "cardinality": "many",
-          "inverse": "home"
+          "inverse": "home",
+          "foreign_key": null
         }
       }
     },
@@ -51,7 +55,8 @@
         "bears": {
           "type": "bears",
           "cardinality": "many",
-          "inverse": "powers"
+          "inverse": "powers",
+          "foreign_keys": null
         }
       }
     }

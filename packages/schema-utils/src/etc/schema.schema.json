@@ -3,7 +3,6 @@
   "description": "A representation of a schema for use by polygraph",
   "type": "object",
   "required": ["resources"],
-  "additionalProperties": false,
   "properties": {
     "title": {
       "type": "string",
@@ -27,24 +26,24 @@
       "properties": {
         "singular": { "type": "string" },
         "attributes": {
-          "$ref": "#/definitions/attributes"
+          "$ref": "#attributes"
         },
         "relationships": {
           "$ref": "#/definitions/relationships"
         },
         "meta": {}
       },
-      "required": ["attributes", "relationships"],
-      "additionalProperties": false
+      "required": ["attributes", "relationships"]
     },
     "attributes": {
+      "$id": "#attributes",
       "type": "object",
       "patternProperties": {
         "^([a-z])([A-Za-z0-9_]+)$": {
           "type": "object",
           "properties": {
             "type": {
-              "$ref": "#/defintions/attributeType"
+              "$ref": "#attributeType"
             },
             "meta": {}
           },
@@ -52,46 +51,61 @@
         }
       },
       "minProperties": 1,
-      "additionalProperties": false,
       "propertyNames": { "pattern": "^([a-z])([A-Za-z0-9_]+)$" }
     },
     "relationships": {
       "type": "object",
       "patternProperties": {
         "^([a-z])([A-Za-z0-9_]+)$": {
-            "oneOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "type": { "type": "string" },
-                  "cardinality": { "enum": ["one", "many"] },
-                  "inverse": { "type": "string" }
-                },
-                "required": ["type", "cardinality", "inverse"]
-              },{
-                "type": "object",
-                "properties": {
-                  "type": { "type": "string" },
-                  "cardinality": { "enum": ["one", "many"] },
-                  "inverses": {
-                    "type": "array",
-                    "properties": { "items": {"type": "string" }}
-                  }
-                },
-                "required": ["type", "cardinality", "inverse"]
-              }
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "propertyNames": { "pattern": "^([a-z])([A-Za-z0-9_]+)$" }
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string" },
+                "cardinality": { "enum": ["one", "many"] },
+                "inverse": { "type": "string" }
+              },
+              "required": ["type", "cardinality", "inverse"]
+            },{
+              "type": "object",
+              "properties": {
+                "type": { "type": "string" },
+                "cardinality": { "enum": ["one", "many"] },
+                "inverses": {
+                  "type": "array",
+                  "properties": { "items": {"type": "string" }}
+                }
+              },
+              "required": ["type", "cardinality", "inverses"]
+            }
+          ]
+        }
       },
-      "attributeType": {
-        "oneOf": [
-          { "enum": ["boolean", "date", "datetime", "integer", "number", "string", "text", "uuid"] },
-          { "type": "array", "minItems": 1, "maxItems": 1, "items": { "$ref": "#/definitions/attributeType" } },
-          { "$ref": "#/definitions/attributes" }
-        ]
-      }
+      "propertyNames": { "pattern": "^([a-z])([A-Za-z0-9_]+)$" }
+    },
+    "attributeType": {
+      "$id": "#attributeType",
+      "oneOf": [
+        { "enum": ["boolean", "date", "datetime", "integer", "number", "string", "text", "uuid"] },
+        { "type": "array", "minItems": 1, "maxItems": 1, "items": { "$ref": "#attributeType" } },
+        {
+          "type": "object",
+          "patternProperties": {
+            "^([a-z])([A-Za-z0-9_]+)$": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "$ref": "#attributeType"
+                },
+                "meta": {}
+              },
+              "required": ["type"]
+            }
+          },
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^([a-z])([A-Za-z0-9_]+)$" }
+        }
+      ]
     }
   }
+}

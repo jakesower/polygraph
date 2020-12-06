@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "ava"
+    "test": "ava",
+    "test:watch": "ava -w"
   },
   "keywords": [],
   "author": "Jake Sower",

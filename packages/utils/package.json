@@ -17,5 +17,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "b73851fb5328b2ee1cfb9c97f12a08a69546cb79"
+  "gitHead": "b73851fb5328b2ee1cfb9c97f12a08a69546cb79",
+  "dependencies": {
+    "object-promise": "^1.0.2"
+  }
 }

@@ -47,6 +47,11 @@ export declare function mapObj<T, U>(obj: {
 }, fn: (x: T, idx: string) => U): {
     [k in string]: U;
 };
+export declare function mapObjAsync<T, U>(obj: {
+    [k: string]: T;
+}, fn: (x: T, idx: string) => U | Promise<U>): Promise<{
+    [k: string]: U;
+}>;
 export declare function mapObjToArray<T, U>(obj: {
     [k in string]: T;
 }, fn: (x: T, idx: string) => U): U[];

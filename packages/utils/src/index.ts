@@ -1,3 +1,5 @@
+import objectPromise from 'object-promise';
+
 type Ord = number | string | boolean | Date;
 
 export function append<T, U>(xs: T[], ys: U[]): (T | U)[] {
@@ -141,6 +143,21 @@ export function mapObj<T, U>(
   const [keys, vals] = [Object.keys(obj), Object.values(obj)];
   const mappedVals = vals.map((v, idx) => fn(v, keys[idx]));
   return zipObj(keys, mappedVals);
+}
+
+export async function mapObjAsync<T, U>(
+  obj: { [k: string]: T },
+  fn: (x: T, idx: string) => U | Promise<U>
+): Promise<{ [k: string]: U }> {
+  let result = {};
+  let promiseVals = {};
+  const keys = Object.keys(obj);
+
+  for (let key of keys) {
+    promiseVals[key] = fn(obj[key], key);
+  }
+
+  return objectPromise(promiseVals);
 }
 
 export function mapObjToArray<T, U>(obj: { [k in string]: T }, fn: (x: T, idx: string) => U): U[] {
@@ -351,9 +368,7 @@ export function sortBy<T>(fn: (a: T, b: T) => number, xs: T[]): T[] {
     }
   }
 
-  return sortBy(fn, lts)
-    .concat(eqs)
-    .concat(sortBy(fn, gts));
+  return sortBy(fn, lts).concat(eqs).concat(sortBy(fn, gts));
 }
 
 export function sortByAll<T>(fns: ((a: T, b: T) => number)[], xs: T[]): T[] {
@@ -404,9 +419,7 @@ export function sortWith<T>(fn: (a: T) => Ord, xs: T[]): T[] {
     }
   }
 
-  return sortWith(fn, lts)
-    .concat(eqs)
-    .concat(sortWith(fn, gts));
+  return sortWith(fn, lts).concat(eqs).concat(sortWith(fn, gts));
 }
 
 export function sortWithAll<T>(fns: ((a: T) => Ord)[], xs: T[]): T[] {

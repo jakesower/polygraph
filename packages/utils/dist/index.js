@@ -8,7 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const object_promise_1 = __importDefault(require("object-promise"));
 function append(xs, ys) {
     return [...xs, ...ys];
 }
@@ -129,6 +133,18 @@ function mapObj(obj, fn) {
     return zipObj(keys, mappedVals);
 }
 exports.mapObj = mapObj;
+function mapObjAsync(obj, fn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let result = {};
+        let promiseVals = {};
+        const keys = Object.keys(obj);
+        for (let key of keys) {
+            promiseVals[key] = fn(obj[key], key);
+        }
+        return object_promise_1.default(promiseVals);
+    });
+}
+exports.mapObjAsync = mapObjAsync;
 function mapObjToArray(obj, fn) {
     const [keys, vals] = [Object.keys(obj), Object.values(obj)];
     const mappedVals = vals.map((v, idx) => fn(v, keys[idx]));
@@ -300,9 +316,7 @@ function sortBy(fn, xs) {
             lts.push(rest[i]);
         }
     }
-    return sortBy(fn, lts)
-        .concat(eqs)
-        .concat(sortBy(fn, gts));
+    return sortBy(fn, lts).concat(eqs).concat(sortBy(fn, gts));
 }
 exports.sortBy = sortBy;
 function sortByAll(fns, xs) {
@@ -351,9 +365,7 @@ function sortWith(fn, xs) {
             eqs.push(rest[i]);
         }
     }
-    return sortWith(fn, lts)
-        .concat(eqs)
-        .concat(sortWith(fn, gts));
+    return sortWith(fn, lts).concat(eqs).concat(sortWith(fn, gts));
 }
 exports.sortWith = sortWith;
 function sortWithAll(fns, xs) {

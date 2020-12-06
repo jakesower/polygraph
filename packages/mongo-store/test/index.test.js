@@ -1,11 +1,15 @@
 import test from 'ava';
 import { expandSchema } from '@polygraph/schema-utils';
 import { readFileSync } from 'fs';
-import { SqliteStore } from '../src';
-import sqlite from 'sqlite';
+import { MongoStore } from '../src';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { pick } from '@polygraph/utils';
 
 const rawSchema = readFileSync(__dirname + '/care-bear-schema.json', { encoding: 'utf8' });
 const schema = expandSchema(JSON.parse(rawSchema));
+
+const mongod = new MongoMemoryServer();
 
 const grumpyBear = {
   type: 'bears',
@@ -24,101 +28,148 @@ const grumpyBear = {
 const attrs = {
   bears: {
     1: {
+      _id: '5fc2f8eabdbcca10e1fbc441',
       name: 'Tenderheart Bear',
       gender: 'male',
       belly_badge: 'heart',
       fur_color: 'tan',
+      home: '5fc2f8eabdbcca10e1fbc451',
+      powers: ['5fc2f8eabdbcca10e1fbc461'],
     },
     2: {
+      _id: '5fc2f8eabdbcca10e1fbc442',
       name: 'Cheer Bear',
       gender: 'female',
       belly_badge: 'rainbow',
       fur_color: 'carnation pink',
+      home: '5fc2f8eabdbcca10e1fbc451',
+      powers: ['5fc2f8eabdbcca10e1fbc461'],
     },
     3: {
+      _id: '5fc2f8eabdbcca10e1fbc443',
       name: 'Wish Bear',
       gender: 'female',
       belly_badge: 'shooting star',
       fur_color: 'turquoise',
+      home: '5fc2f8eabdbcca10e1fbc451',
+      powers: ['5fc2f8eabdbcca10e1fbc461'],
     },
     5: {
+      _id: '5fc2f8eabdbcca10e1fbc445',
       name: 'Wonderheart Bear',
       gender: 'female',
       belly_badge: 'three hearts',
       fur_color: 'pink',
+      home: '5fc2f8eabdbcca10e1fbc451',
+      powers: ['5fc2f8eabdbcca10e1fbc461'],
     },
   },
   homes: {
     1: {
+      _id: '5fc2f8eabdbcca10e1fbc451',
       name: 'Care-a-Lot',
       location: 'Kingdom of Caring',
       caring_meter: 1,
     },
-    2: { name: 'Forest of Feelings', location: 'Kingdom of Caring', caring_meter: 1 },
+    2: {
+      _id: '5fc2f8eabdbcca10e1fbc452',
+      name: 'Forest of Feelings',
+      location: 'Kingdom of Caring',
+      caring_meter: 1,
+    },
   },
   powers: {
     careBearStare: {
+      _id: '5fc2f8eabdbcca10e1fbc461',
       name: 'Care Bear Stare',
       description: 'Purges evil.',
     },
     makeWish: {
+      _id: '5fc2f8eabdbcca10e1fbc462',
       name: 'Make a Wish',
       description: 'Makes a wish on Twinkers',
     },
   },
 };
 
+const _idOf = (type, id) => attrs[type][id]._id;
+const bearAttrs = id => pick(attrs.bears[id], ['name', 'gender', 'belly_badge', 'fur_color']);
+const homeAttrs = id => pick(attrs.homes[id], ['name', 'location', 'caring_meter']);
+const powerAttrs = id => pick(attrs.powers[id], ['name', 'description']);
+
+test.before(async t => {
+  const uri = await mongod.getUri();
+
+  await mongoose.connect(uri);
+
+  await mongoose.model(
+    'bears',
+    new mongoose.Schema({
+      name: String,
+      gender: String,
+      belly_badge: String,
+      fur_color: String,
+      home: { type: mongoose.Schema.Types.ObjectId, ref: 'Home' },
+      powers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Home' }],
+    })
+  );
+
+  await mongoose.model(
+    'homes',
+    new mongoose.Schema({
+      name: String,
+      location: String,
+      caring_meter: Number,
+    })
+  );
+
+  await mongoose.model(
+    'powers',
+    new mongoose.Schema({
+      name: String,
+      description: String,
+    })
+  );
+});
+
 test.beforeEach(async t => {
-  const db = await sqlite.open(':memory:');
-
-  await db.run(
-    'CREATE TABLE bears (id VARCHAR, name VARCHAR, gender VARCHAR, belly_badge VARCHAR, fur_color VARCHAR, home_id VARCHAR, best_friend_id VARCHAR)'
-  );
-  await db.run(
-    'CREATE TABLE homes (id VARCHAR, name VARCHAR, location VARCHAR, caring_meter REAL)'
-  );
-  await db.run('CREATE TABLE powers (id VARCHAR, name VARCHAR, description VARCHAR)');
-  await db.run('CREATE TABLE bears_powers (bears_id VARCHAR, powers_id VARCHAR)');
-
-  await db.run(
-    "INSERT INTO bears VALUES ('1', 'Tenderheart Bear', 'male', 'heart', 'tan', '1', '')"
-  );
-  await db.run(
-    "INSERT INTO bears VALUES ('2', 'Cheer Bear', 'female', 'rainbow', 'carnation pink', '1', '3')"
-  );
-  await db.run(
-    "INSERT INTO bears VALUES ('3', 'Wish Bear', 'female', 'shooting star', 'turquoise', '1', '2')"
-  );
-  await db.run(
-    "INSERT INTO bears VALUES ('5', 'Wonderheart Bear', 'female', 'three hearts', 'pink', '', '')"
+  await Promise.all(
+    ['homes', 'bears', 'powers'].map(type =>
+      mongoose.connection.collections[type].insertMany(
+        Object.values(attrs[type]).map(recordAttrs => ({
+          ...recordAttrs,
+          _id: mongoose.Types.ObjectId(recordAttrs._id),
+        }))
+      )
+    )
   );
 
-  await db.run("INSERT INTO homes VALUES ('1', 'Care-a-Lot', 'Kingdom of Caring', 1)");
-  await db.run("INSERT INTO homes VALUES ('2', 'Forest of Feelings', 'Kingdom of Caring', 1)");
+  t.context = { store: MongoStore(schema, mongoose) };
+});
 
-  await db.run("INSERT INTO powers VALUES ('careBearStare', 'Care Bear Stare', 'Purges evil.')");
-  await db.run("INSERT INTO powers VALUES ('makeWish', 'Make a Wish', 'Makes a wish on Twinkers')");
+test.afterEach(async t => {
+  const collections = mongoose.connection.collections;
 
-  await db.run("INSERT INTO bears_powers VALUES ('1', 'careBearStare')");
-  await db.run("INSERT INTO bears_powers VALUES ('2', 'careBearStare')");
-  await db.run("INSERT INTO bears_powers VALUES ('3', 'careBearStare')");
-
-  t.context = { store: SqliteStore(schema, db) };
+  for (const key in collections) {
+    const collection = collections[key];
+    await collection.deleteMany();
+  }
+  // await mongoose.deleteModel(/.+/);
 });
 
 test('fetches a single resource', async t => {
-  const result = await t.context.store.get({ type: 'bears', id: '1' });
+  const result = await t.context.store.get({ type: 'bears', id: bearAttrs(1)._id });
 
   t.deepEqual(result, {
     type: 'bears',
-    id: '1',
-    attributes: attrs.bears['1'],
+    id: _idOf('bears', 1),
+    attributes: bearAttrs(1),
     relationships: {},
   });
 });
 
 test('does not fetch a nonexistent resource', async t => {
-  const result = await t.context.store.get({ type: 'bears', id: '6' });
+  const result = await t.context.store.get({ type: 'bears', id: '5fc2f8eabdbcca10e1fbc446' });
 
   t.deepEqual(result, null);
 });
@@ -129,26 +180,26 @@ test('fetches multiple resources', async t => {
   t.deepEqual(result, [
     {
       type: 'bears',
-      id: '1',
-      attributes: attrs.bears['1'],
+      id: _idOf('bears', 1),
+      attributes: bearAttrs(1),
       relationships: {},
     },
     {
       type: 'bears',
-      id: '2',
-      attributes: attrs.bears['2'],
+      id: _idOf('bears', 2),
+      attributes: bearAttrs(2),
       relationships: {},
     },
     {
       type: 'bears',
-      id: '3',
-      attributes: attrs.bears['3'],
+      id: _idOf('bears', 3),
+      attributes: bearAttrs(3),
       relationships: {},
     },
     {
       type: 'bears',
-      id: '5',
-      attributes: attrs.bears['5'],
+      id: _idOf('bears', 5),
+      attributes: bearAttrs(5),
       relationships: {},
     },
   ]);
@@ -157,19 +208,19 @@ test('fetches multiple resources', async t => {
 test('fetches a single resource with a single relationship', async t => {
   const result = await t.context.store.get({
     type: 'bears',
-    id: '1',
+    id: _idOf('bears', 1),
     relationships: { home: {} },
   });
 
   t.deepEqual(result, {
     type: 'bears',
-    id: '1',
-    attributes: attrs.bears['1'],
+    id: _idOf('bears', 1),
+    attributes: bearAttrs(1),
     relationships: {
       home: {
         type: 'homes',
-        id: '1',
-        attributes: attrs.homes['1'],
+        id: _idOf('homes', 1),
+        attributes: homeAttrs(1),
         relationships: {},
       },
     },
@@ -179,20 +230,20 @@ test('fetches a single resource with a single relationship', async t => {
 test('fetches a single resource with many-to-many relationship', async t => {
   const result = await t.context.store.get({
     type: 'bears',
-    id: '1',
+    id: _idOf('bears', 1),
     relationships: { powers: {} },
   });
 
   t.deepEqual(result, {
     type: 'bears',
-    id: '1',
-    attributes: attrs.bears['1'],
+    id: _idOf('bears', 1),
+    attributes: bearAttrs(1),
     relationships: {
       powers: [
         {
           type: 'powers',
-          id: 'careBearStare',
-          attributes: attrs.powers['careBearStare'],
+          id: _idOf('powers', 'careBearStare'),
+          attributes: powerAttrs('careBearStare'),
           relationships: {},
         },
       ],
@@ -203,7 +254,7 @@ test('fetches a single resource with many-to-many relationship', async t => {
 test('fetches multiple relationships of various types', async t => {
   const result = await t.context.store.get({
     type: 'bears',
-    id: '1',
+    id: _idOf('bears', 1),
     relationships: {
       home: {
         relationships: {
@@ -216,31 +267,31 @@ test('fetches multiple relationships of various types', async t => {
 
   t.deepEqual(result, {
     type: 'bears',
-    id: '1',
-    attributes: attrs.bears['1'],
+    id: _idOf('bears', 1),
+    attributes: bearAttrs(1),
     relationships: {
       home: {
         type: 'homes',
-        id: '1',
-        attributes: attrs.homes['1'],
+        id: _idOf('homes', 1),
+        attributes: homeAttrs(1),
         relationships: {
           bears: [
             {
               type: 'bears',
-              id: '1',
-              attributes: attrs.bears['1'],
+              id: _idOf('bears', 1),
+              attributes: bearAttrs(1),
               relationships: {},
             },
             {
               type: 'bears',
-              id: '2',
-              attributes: attrs.bears['2'],
+              id: _idOf('bears', 2),
+              attributes: bearAttrs(2),
               relationships: {},
             },
             {
               type: 'bears',
               id: '3',
-              attributes: attrs.bears['3'],
+              attributes: bearAttrs(3),
               relationships: {},
             },
           ],
@@ -258,350 +309,350 @@ test('fetches multiple relationships of various types', async t => {
   });
 });
 
-test('handles symmetric relationships', async t => {
-  const result = await t.context.store.get({
-    type: 'bears',
-    relationships: {
-      best_friend: {},
-    },
-  });
+// test('handles symmetric relationships', async t => {
+//   const result = await t.context.store.get({
+//     type: 'bears',
+//     relationships: {
+//       best_friend: {},
+//     },
+//   });
 
-  t.deepEqual(result, [
-    {
-      type: 'bears',
-      id: '1',
-      attributes: attrs.bears['1'],
-      relationships: { best_friend: null },
-    },
-    {
-      type: 'bears',
-      id: '2',
-      attributes: attrs.bears['2'],
-      relationships: {
-        best_friend: {
-          type: 'bears',
-          id: '3',
-          attributes: attrs.bears['3'],
-          relationships: {},
-        },
-      },
-    },
-    {
-      type: 'bears',
-      id: '3',
-      attributes: attrs.bears['3'],
-      relationships: {
-        best_friend: {
-          type: 'bears',
-          id: '2',
-          attributes: attrs.bears['2'],
-          relationships: {},
-        },
-      },
-    },
-    {
-      type: 'bears',
-      id: '5',
-      attributes: attrs.bears['5'],
-      relationships: { best_friend: null },
-    },
-  ]);
-});
+//   t.deepEqual(result, [
+//     {
+//       type: 'bears',
+//       id: '1',
+//       attributes: bearAttrs(1),
+//       relationships: { best_friend: null },
+//     },
+//     {
+//       type: 'bears',
+//       id: '2',
+//       attributes: bearAttrs(2),
+//       relationships: {
+//         best_friend: {
+//           type: 'bears',
+//           id: '3',
+//           attributes: bearAttrs(3),
+//           relationships: {},
+//         },
+//       },
+//     },
+//     {
+//       type: 'bears',
+//       id: '3',
+//       attributes: bearAttrs(3),
+//       relationships: {
+//         best_friend: {
+//           type: 'bears',
+//           id: '2',
+//           attributes: bearAttrs(2),
+//           relationships: {},
+//         },
+//       },
+//     },
+//     {
+//       type: 'bears',
+//       id: '5',
+//       attributes: bearAttrs(5),
+//       relationships: { best_friend: null },
+//     },
+//   ]);
+// });
 
-test('creates new objects without relationships', async t => {
-  await t.context.store.merge(grumpyBear);
+// test('creates new objects without relationships', async t => {
+//   await t.context.store.merge(grumpyBear);
 
-  const result = await t.context.store.get({
-    type: 'bears',
-    id: '4',
-  });
+//   const result = await t.context.store.get({
+//     type: 'bears',
+//     id: '4',
+//   });
 
-  t.deepEqual(result, {
-    type: 'bears',
-    id: '4',
-    attributes: grumpyBear.attributes,
-    relationships: {},
-  });
-});
+//   t.deepEqual(result, {
+//     type: 'bears',
+//     id: '4',
+//     attributes: grumpyBear.attributes,
+//     relationships: {},
+//   });
+// });
 
-test('creates new objects with a relationship', async t => {
-  await t.context.store.merge({
-    ...grumpyBear,
-    relationships: { home: '1' },
-  });
+// test('creates new objects with a relationship', async t => {
+//   await t.context.store.merge({
+//     ...grumpyBear,
+//     relationships: { home: '1' },
+//   });
 
-  const result = await t.context.store.get({
-    type: 'bears',
-    id: '4',
-    relationships: { home: {} },
-  });
+//   const result = await t.context.store.get({
+//     type: 'bears',
+//     id: '4',
+//     relationships: { home: {} },
+//   });
 
-  t.deepEqual(result, {
-    type: 'bears',
-    id: '4',
-    attributes: grumpyBear.attributes,
-    relationships: {
-      home: {
-        type: 'homes',
-        id: '1',
-        attributes: attrs.homes['1'],
-        relationships: {},
-      },
-    },
-  });
-});
+//   t.deepEqual(result, {
+//     type: 'bears',
+//     id: '4',
+//     attributes: grumpyBear.attributes,
+//     relationships: {
+//       home: {
+//         type: 'homes',
+//         id: '1',
+//         attributes: attrs.homes['1'],
+//         relationships: {},
+//       },
+//     },
+//   });
+// });
 
-test('merges into existing objects', async t => {
-  await t.context.store.merge({
-    type: 'bears',
-    id: '2',
-    attributes: { fur_color: 'just pink' },
-  });
+// test('merges into existing objects', async t => {
+//   await t.context.store.merge({
+//     type: 'bears',
+//     id: '2',
+//     attributes: { fur_color: 'just pink' },
+//   });
 
-  const result = await t.context.store.get({
-    type: 'bears',
-    id: '2',
-  });
+//   const result = await t.context.store.get({
+//     type: 'bears',
+//     id: '2',
+//   });
 
-  t.deepEqual(result, {
-    type: 'bears',
-    id: '2',
-    attributes: { ...attrs.bears['2'], fur_color: 'just pink' },
-    relationships: {},
-  });
-});
+//   t.deepEqual(result, {
+//     type: 'bears',
+//     id: '2',
+//     attributes: { ...bearAttrs(2), fur_color: 'just pink' },
+//     relationships: {},
+//   });
+// });
 
-test('merges into one-to-many relationship', async t => {
-  await t.context.store.merge({
-    type: 'bears',
-    id: '1',
-    relationships: { home: '2' },
-  });
+// test('merges into one-to-many relationship', async t => {
+//   await t.context.store.merge({
+//     type: 'bears',
+//     id: '1',
+//     relationships: { home: '2' },
+//   });
 
-  const result = await t.context.store.get({
-    type: 'bears',
-    id: '1',
-    relationships: { home: {} },
-  });
+//   const result = await t.context.store.get({
+//     type: 'bears',
+//     id: '1',
+//     relationships: { home: {} },
+//   });
 
-  t.deepEqual(result, {
-    type: 'bears',
-    id: '1',
-    attributes: attrs.bears['1'],
-    relationships: {
-      home: { type: 'homes', id: '2', relationships: {}, attributes: attrs.homes['2'] },
-    },
-  });
-});
+//   t.deepEqual(result, {
+//     type: 'bears',
+//     id: '1',
+//     attributes: bearAttrs(1),
+//     relationships: {
+//       home: { type: 'homes', id: '2', relationships: {}, attributes: attrs.homes['2'] },
+//     },
+//   });
+// });
 
-test('merges into many-to-one relationship', async t => {
-  await t.context.store.merge({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: ['1'] },
-  });
+// test('merges into many-to-one relationship', async t => {
+//   await t.context.store.merge({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: ['1'] },
+//   });
 
-  const result = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+//   const result = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.deepEqual(result, {
-    type: 'homes',
-    id: '1',
-    attributes: attrs.homes['1'],
-    relationships: {
-      bears: [{ type: 'bears', id: '1', relationships: {}, attributes: attrs.bears['1'] }],
-    },
-  });
-});
+//   t.deepEqual(result, {
+//     type: 'homes',
+//     id: '1',
+//     attributes: attrs.homes['1'],
+//     relationships: {
+//       bears: [{ type: 'bears', id: '1', relationships: {}, attributes: bearAttrs(1) }],
+//     },
+//   });
+// });
 
-test('merges into many-to-many relationship', async t => {
-  await t.context.store.merge({
-    type: 'powers',
-    id: 'makeWish',
-    relationships: { bears: ['3'] },
-  });
+// test('merges into many-to-many relationship', async t => {
+//   await t.context.store.merge({
+//     type: 'powers',
+//     id: 'makeWish',
+//     relationships: { bears: ['3'] },
+//   });
 
-  const result = await t.context.store.get({
-    type: 'powers',
-    id: 'makeWish',
-    relationships: { bears: {} },
-  });
+//   const result = await t.context.store.get({
+//     type: 'powers',
+//     id: 'makeWish',
+//     relationships: { bears: {} },
+//   });
 
-  t.deepEqual(result, {
-    type: 'powers',
-    id: 'makeWish',
-    attributes: attrs.powers.makeWish,
-    relationships: {
-      bears: [{ type: 'bears', id: '3', relationships: {}, attributes: attrs.bears['3'] }],
-    },
-  });
+//   t.deepEqual(result, {
+//     type: 'powers',
+//     id: 'makeWish',
+//     attributes: attrs.powers.makeWish,
+//     relationships: {
+//       bears: [{ type: 'bears', id: '3', relationships: {}, attributes: bearAttrs(3) }],
+//     },
+//   });
 
-  const result2 = await t.context.store.get({
-    type: 'bears',
-    id: '3',
-    relationships: { powers: {} },
-  });
+//   const result2 = await t.context.store.get({
+//     type: 'bears',
+//     id: '3',
+//     relationships: { powers: {} },
+//   });
 
-  t.deepEqual(result2, {
-    type: 'bears',
-    id: '3',
-    attributes: attrs.bears['3'],
-    relationships: {
-      powers: [
-        {
-          type: 'powers',
-          id: 'careBearStare',
-          relationships: {},
-          attributes: attrs.powers.careBearStare,
-        },
-        { type: 'powers', id: 'makeWish', relationships: {}, attributes: attrs.powers.makeWish },
-      ],
-    },
-  });
-});
+//   t.deepEqual(result2, {
+//     type: 'bears',
+//     id: '3',
+//     attributes: bearAttrs(3),
+//     relationships: {
+//       powers: [
+//         {
+//           type: 'powers',
+//           id: 'careBearStare',
+//           relationships: {},
+//           attributes: attrs.powers.careBearStare,
+//         },
+//         { type: 'powers', id: 'makeWish', relationships: {}, attributes: attrs.powers.makeWish },
+//       ],
+//     },
+//   });
+// });
 
-test('deletes objects', async t => {
-  await t.context.store.delete({ type: 'bears', id: '1' });
-  const result = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+// test('deletes objects', async t => {
+//   await t.context.store.delete({ type: 'bears', id: '1' });
+//   const result = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.is(result.relationships.bears.length, 2);
-});
+//   t.is(result.relationships.bears.length, 2);
+// });
 
-test('replaces a one-to-one relationship', async t => {
-  await t.context.store.replaceRelationship({
-    type: 'bears',
-    id: '2',
-    relationship: 'home',
-    foreignId: '2',
-  });
+// test('replaces a one-to-one relationship', async t => {
+//   await t.context.store.replaceRelationship({
+//     type: 'bears',
+//     id: '2',
+//     relationship: 'home',
+//     foreignId: '2',
+//   });
 
-  const bearResult = await t.context.store.get({
-    type: 'bears',
-    id: '2',
-    relationships: { home: {} },
-  });
+//   const bearResult = await t.context.store.get({
+//     type: 'bears',
+//     id: '2',
+//     relationships: { home: {} },
+//   });
 
-  t.is(bearResult.relationships.home.attributes.name, 'Forest of Feelings');
+//   t.is(bearResult.relationships.home.attributes.name, 'Forest of Feelings');
 
-  const careALotResult = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+//   const careALotResult = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.is(careALotResult.relationships.bears.length, 2);
-});
+//   t.is(careALotResult.relationships.bears.length, 2);
+// });
 
-test('replaces a one-to-many-relationship', async t => {
-  await t.context.store.replaceRelationships({
-    type: 'homes',
-    id: '1',
-    relationship: 'bears',
-    foreignIds: ['1', '5'],
-  });
+// test('replaces a one-to-many-relationship', async t => {
+//   await t.context.store.replaceRelationships({
+//     type: 'homes',
+//     id: '1',
+//     relationship: 'bears',
+//     foreignIds: ['1', '5'],
+//   });
 
-  const bearResult = await t.context.store.get({
-    type: 'bears',
-    id: '2',
-    relationships: { home: {} },
-  });
+//   const bearResult = await t.context.store.get({
+//     type: 'bears',
+//     id: '2',
+//     relationships: { home: {} },
+//   });
 
-  t.is(bearResult.relationships.home, null);
+//   t.is(bearResult.relationships.home, null);
 
-  const wonderheartResult = await t.context.store.get({
-    type: 'bears',
-    id: '5',
-    relationships: { home: {} },
-  });
+//   const wonderheartResult = await t.context.store.get({
+//     type: 'bears',
+//     id: '5',
+//     relationships: { home: {} },
+//   });
 
-  t.is(wonderheartResult.relationships.home.attributes.name, 'Care-a-Lot');
+//   t.is(wonderheartResult.relationships.home.attributes.name, 'Care-a-Lot');
 
-  const careALotResult = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+//   const careALotResult = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.is(careALotResult.relationships.bears.length, 2);
-});
+//   t.is(careALotResult.relationships.bears.length, 2);
+// });
 
-test('appends to a to-many relationship', async t => {
-  await t.context.store.appendRelationships({
-    type: 'homes',
-    id: '1',
-    relationship: 'bears',
-    foreignIds: ['1', '5'],
-  });
+// test('appends to a to-many relationship', async t => {
+//   await t.context.store.appendRelationships({
+//     type: 'homes',
+//     id: '1',
+//     relationship: 'bears',
+//     foreignIds: ['1', '5'],
+//   });
 
-  const bearResult = await t.context.store.get({
-    type: 'bears',
-    id: '5',
-    relationships: { home: {} },
-  });
+//   const bearResult = await t.context.store.get({
+//     type: 'bears',
+//     id: '5',
+//     relationships: { home: {} },
+//   });
 
-  t.is(bearResult.relationships.home.attributes.name, 'Care-a-Lot');
+//   t.is(bearResult.relationships.home.attributes.name, 'Care-a-Lot');
 
-  const careALotResult = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+//   const careALotResult = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.is(careALotResult.relationships.bears.length, 4);
-});
+//   t.is(careALotResult.relationships.bears.length, 4);
+// });
 
-test('deletes a to-one relationship', async t => {
-  await t.context.store.deleteRelationship({
-    type: 'bears',
-    id: '1',
-    relationship: 'home',
-  });
+// test('deletes a to-one relationship', async t => {
+//   await t.context.store.deleteRelationship({
+//     type: 'bears',
+//     id: '1',
+//     relationship: 'home',
+//   });
 
-  const bearResult = await t.context.store.get({
-    type: 'bears',
-    id: '1',
-    relationships: { home: {} },
-  });
+//   const bearResult = await t.context.store.get({
+//     type: 'bears',
+//     id: '1',
+//     relationships: { home: {} },
+//   });
 
-  t.is(bearResult.relationships.home, null);
+//   t.is(bearResult.relationships.home, null);
 
-  const careALotResult = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+//   const careALotResult = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.is(careALotResult.relationships.bears.length, 2);
-});
+//   t.is(careALotResult.relationships.bears.length, 2);
+// });
 
-test('deletes a to-many relationship', async t => {
-  await t.context.store.deleteRelationships({
-    type: 'homes',
-    id: '1',
-    relationship: 'bears',
-    foreignIds: ['1'],
-  });
+// test('deletes a to-many relationship', async t => {
+//   await t.context.store.deleteRelationships({
+//     type: 'homes',
+//     id: '1',
+//     relationship: 'bears',
+//     foreignIds: ['1'],
+//   });
 
-  const bearResult = await t.context.store.get({
-    type: 'bears',
-    id: '1',
-    relationships: { home: {} },
-  });
+//   const bearResult = await t.context.store.get({
+//     type: 'bears',
+//     id: '1',
+//     relationships: { home: {} },
+//   });
 
-  t.is(bearResult.relationships.home, null);
+//   t.is(bearResult.relationships.home, null);
 
-  const careALotResult = await t.context.store.get({
-    type: 'homes',
-    id: '1',
-    relationships: { bears: {} },
-  });
+//   const careALotResult = await t.context.store.get({
+//     type: 'homes',
+//     id: '1',
+//     relationships: { bears: {} },
+//   });
 
-  t.is(careALotResult.relationships.bears.length, 2);
-});
+//   t.is(careALotResult.relationships.bears.length, 2);
+// });

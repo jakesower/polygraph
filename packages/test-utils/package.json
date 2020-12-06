@@ -8,6 +8,9 @@
     "build": "tsc",
     "test": "echo 'oh hey'"
   },
+  "bin": {
+    "copy-tests": "./copy-tests.js"
+  },
   "keywords": [],
   "author": "Jake Sower",
   "license": "ISC",

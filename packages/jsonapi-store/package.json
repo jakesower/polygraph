@@ -23,7 +23,7 @@
     "@babel/node": "^7.7.4",
     "@babel/preset-env": "^7.6.2",
     "ava": "^2.4.0",
-    "axios": "^0.19.1",
+    "axios": "^0.21.1",
     "fortune": "^5.5.17",
     "fortune-http": "^1.2.26",
     "fortune-json-api": "^2.2.3",

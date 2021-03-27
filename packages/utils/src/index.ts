@@ -287,6 +287,21 @@ export function parseQueryParams(rawParams) {
   return out;
 }
 
+export function partition(items, partitionFn) {
+  let truthy, falsy;
+  let l = items.length;
+
+  for (let i = 0; i < l; i += 1) {
+    if (partitionFn(items[i])) {
+      truthy[truthy.length] = items[i];
+    } else {
+      falsy[falsy.length] = items[i];
+    }
+  }
+
+  return [truthy, falsy];
+}
+
 export function pathOr(obj, path, otherwise) {
   if (path.length === 0) return true;
 

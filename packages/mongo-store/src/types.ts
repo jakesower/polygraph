@@ -48,6 +48,8 @@ export interface SchemaRelationship {
   cardinality: 'one' | 'many';
   type: string;
   inverse: string;
+  foreign_key?: string;
+  foreign_keys?: string;
   meta?: any;
 }
 

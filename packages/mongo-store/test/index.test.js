@@ -41,7 +41,7 @@ const attrs = {
       name: 'Cheer Bear',
       gender: 'female',
       belly_badge: 'rainbow',
-      fur_color: 'carnation pink',
+      fur_color: 'pink',
       home: '5fc2f8eabdbcca10e1fbc451',
       powers: ['5fc2f8eabdbcca10e1fbc461'],
     },
@@ -79,12 +79,12 @@ const attrs = {
     },
   },
   powers: {
-    careBearStare: {
+    1: {
       _id: '5fc2f8eabdbcca10e1fbc461',
       name: 'Care Bear Stare',
       description: 'Purges evil.',
     },
-    makeWish: {
+    2: {
       _id: '5fc2f8eabdbcca10e1fbc462',
       name: 'Make a Wish',
       description: 'Makes a wish on Twinkers',
@@ -93,9 +93,30 @@ const attrs = {
 };
 
 const _idOf = (type, id) => attrs[type][id]._id;
+
 const bearAttrs = id => pick(attrs.bears[id], ['name', 'gender', 'belly_badge', 'fur_color']);
+const bearRecord = id => ({
+  type: 'bears',
+  id: _idOf('bears', id),
+  attributes: bearAttrs(id),
+  relationships: {},
+});
+
 const homeAttrs = id => pick(attrs.homes[id], ['name', 'location', 'caring_meter']);
+const homeRecord = id => ({
+  type: 'homes',
+  id: _idOf('homes', id),
+  attributes: homeAttrs(id),
+  relationships: {},
+});
+
 const powerAttrs = id => pick(attrs.powers[id], ['name', 'description']);
+const powerRecord = id => ({
+  type: 'powers',
+  id: _idOf('powers', id),
+  attributes: powerAttrs(id),
+  relationships: {},
+});
 
 test.before(async t => {
   const uri = await mongod.getUri();
@@ -109,8 +130,8 @@ test.before(async t => {
       gender: String,
       belly_badge: String,
       fur_color: String,
-      home: { type: mongoose.Schema.Types.ObjectId, ref: 'Home' },
-      powers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Home' }],
+      home: { type: String, ref: 'homes' },
+      powers: [{ type: String, ref: 'powers' }],
     })
   );
 
@@ -120,6 +141,7 @@ test.before(async t => {
       name: String,
       location: String,
       caring_meter: Number,
+      bears: { type: String, ref: 'bears' },
     })
   );
 
@@ -158,7 +180,7 @@ test.afterEach(async t => {
 });
 
 test('fetches a single resource', async t => {
-  const result = await t.context.store.get({ type: 'bears', id: bearAttrs(1)._id });
+  const result = await t.context.store.get({ type: 'bears', id: _idOf('bears', 1) });
 
   t.deepEqual(result, {
     type: 'bears',
@@ -205,6 +227,56 @@ test('fetches multiple resources', async t => {
   ]);
 });
 
+test('fetches resources with an equality condition', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: {},
+    filter: { gender: { $eq: 'male' } },
+  });
+
+  t.deepEqual(result, [
+    {
+      type: 'bears',
+      id: _idOf('bears', 1),
+      attributes: bearAttrs(1),
+      relationships: {},
+    },
+  ]);
+});
+
+test('fetches resources with a compound condition', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: {},
+    filter: { gender: { $eq: 'female' }, fur_color: { $eq: 'pink' } },
+  });
+
+  t.deepEqual(result, [
+    {
+      type: 'bears',
+      id: _idOf('bears', 2),
+      attributes: bearAttrs(2),
+      relationships: {},
+    },
+    {
+      type: 'bears',
+      id: _idOf('bears', 5),
+      attributes: bearAttrs(5),
+      relationships: {},
+    },
+  ]);
+});
+
+test('fetches resources with a nested condition', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: {},
+    filter: { fur_color: { $or: [{ $eq: 'pink' }, { $eq: 'turquoise' }] } },
+  });
+
+  t.deepEqual(result, [bearRecord(2), bearRecord(3), bearRecord(5)]);
+});
+
 test('fetches a single resource with a single relationship', async t => {
   const result = await t.context.store.get({
     type: 'bears',
@@ -213,16 +285,9 @@ test('fetches a single resource with a single relationship', async t => {
   });
 
   t.deepEqual(result, {
-    type: 'bears',
-    id: _idOf('bears', 1),
-    attributes: bearAttrs(1),
+    ...bearRecord(1),
     relationships: {
-      home: {
-        type: 'homes',
-        id: _idOf('homes', 1),
-        attributes: homeAttrs(1),
-        relationships: {},
-      },
+      home: homeRecord(1),
     },
   });
 });
@@ -239,19 +304,12 @@ test('fetches a single resource with many-to-many relationship', async t => {
     id: _idOf('bears', 1),
     attributes: bearAttrs(1),
     relationships: {
-      powers: [
-        {
-          type: 'powers',
-          id: _idOf('powers', 'careBearStare'),
-          attributes: powerAttrs('careBearStare'),
-          relationships: {},
-        },
-      ],
+      powers: [powerRecord(1)],
     },
   });
 });
 
-test('fetches multiple relationships of various types', async t => {
+test.only('fetches multiple relationships of various types', async t => {
   const result = await t.context.store.get({
     type: 'bears',
     id: _idOf('bears', 1),
@@ -266,45 +324,15 @@ test('fetches multiple relationships of various types', async t => {
   });
 
   t.deepEqual(result, {
-    type: 'bears',
-    id: _idOf('bears', 1),
-    attributes: bearAttrs(1),
+    ...bearRecord(1),
     relationships: {
       home: {
-        type: 'homes',
-        id: _idOf('homes', 1),
-        attributes: homeAttrs(1),
+        ...homeRecord(1),
         relationships: {
-          bears: [
-            {
-              type: 'bears',
-              id: _idOf('bears', 1),
-              attributes: bearAttrs(1),
-              relationships: {},
-            },
-            {
-              type: 'bears',
-              id: _idOf('bears', 2),
-              attributes: bearAttrs(2),
-              relationships: {},
-            },
-            {
-              type: 'bears',
-              id: '3',
-              attributes: bearAttrs(3),
-              relationships: {},
-            },
-          ],
+          bears: [bearRecord(1), bearRecord(2), bearRecord(3), bearRecord(5)],
         },
       },
-      powers: [
-        {
-          type: 'powers',
-          id: 'careBearStare',
-          attributes: attrs.powers.careBearStare,
-          relationships: {},
-        },
-      ],
+      powers: [powerRecord(1)],
     },
   });
 });

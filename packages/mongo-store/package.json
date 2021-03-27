@@ -5,13 +5,14 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src -d dist",
-    "test": "NODE_ENV=test ava -s",
-    "test:watch": "NODE_ENV=test ava -s -w"
+    "test": "NODE_ENV=test ava -s --verbose",
+    "test:watch": "NODE_ENV=test ava -s -w --fail-fast --verbose"
   },
   "keywords": [],
   "author": "Jake Sower",
   "license": "CC BY-NC-SA",
   "dependencies": {
+    "@polygraph/core": "*",
     "@polygraph/schema-utils": "^0.0.7",
     "@polygraph/utils": "^0.0.6",
     "mongoose": "^5.10.15"

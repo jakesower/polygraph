@@ -89,6 +89,7 @@ export declare function omitKeys<T>(obj: {
     [k: string]: T;
 };
 export declare function parseQueryParams(rawParams: any): {};
+export declare function partition(items: any, partitionFn: any): any[];
 export declare function pathOr(obj: any, path: any, otherwise: any): any;
 export declare function pick<T>(obj: {
     [k: string]: T;

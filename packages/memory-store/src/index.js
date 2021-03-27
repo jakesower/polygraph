@@ -12,6 +12,7 @@ import {
   findObj,
   assignChildren,
 } from '@polygraph/utils';
+import { filter } from './filter';
 
 export function MemoryStore(schema, baseState) {
   const baseObjects = fillObject(resourceNames(schema), {});
@@ -185,7 +186,7 @@ export function MemoryStore(schema, baseState) {
   }
 
   function getMany(query) {
-    return Object.values(
+    const results = Object.values(
       mapObj(state.objects[query.type], (_, id) =>
         getOne({
           type: query.type,
@@ -194,6 +195,8 @@ export function MemoryStore(schema, baseState) {
         })
       )
     );
+
+    return query.filter ? filter(results, query.filter) : results;
   }
 
   function expandRelationship(query, relationshipName, options) {

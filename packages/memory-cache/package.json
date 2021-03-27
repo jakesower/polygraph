@@ -1,0 +1,45 @@
+{
+  "name": "@polygraph/memory-cache",
+  "version": "0.0.0",
+  "description": "In-memory polygraph cache.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src -d dist",
+    "test": "NODE_ENV=test ava",
+    "test:watch": "NODE_ENV=test ava -w"
+  },
+  "keywords": [],
+  "author": "Jake Sower",
+  "license": "CC BY-NC-SA",
+  "dependencies": {
+    "@polygraph/schema-utils": "^0.0.7",
+    "@polygraph/utils": "^0.0.2",
+    "object-hash": "^2.0.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "ava": "^2.4.0",
+    "@polygraph/memory-store": "0.0.6",
+    "ts-node": "^8.5.2",
+    "typescript": "^3.7.2"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "files": [
+      "test/*.test.js"
+    ],
+    "require": [
+      "esm",
+      "ts-node/register"
+    ],
+    "extensions": [
+      "mjs",
+      "ts"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

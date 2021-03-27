@@ -1,0 +1,50 @@
+{
+  "name": "@polygraph/graphql-adapter",
+  "version": "0.0.11",
+  "description": "An adapter that allows interaction with polygraph via graphql-like queries.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_ENV=test ava --verbose",
+    "test:watch": "NODE_ENV=test ava -w --verbose"
+  },
+  "keywords": [],
+  "author": "Jake Sower",
+  "license": "CC BY-NC-SA",
+  "dependencies": {
+    "@polygraph/schema-utils": "^0.0.7",
+    "@polygraph/utils": "^0.0.6",
+    "graphql": "^14.6.0",
+    "graphql-tools": "^4.0.6"
+  },
+  "devDependencies": {
+    "@ava/babel": "^1.0.1",
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@polygraph/memory-store": "^0.0.6",
+    "@polygraph/test-utils": "^0.0.2",
+    "ava": "^3.3.0",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  },
+  "ava": {
+    "babel": {
+      "compileEnhancements": false
+    },
+    "files": [
+      "test/*.test.js"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "extensions": [
+      "mjs",
+      "ts"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "451a467247458685a82d6d8edff5fc575dc02228"
+}

@@ -1,13 +1,14 @@
 {
-  "name": "@polygraph/jsonapi-store",
-  "version": "0.0.8",
+  "name": "@polygraph/core",
+  "version": "0.0.0",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start-server": "babel-node test/server.js",
     "test": "NODE_ENV=test ava",
     "ci": "start-server-and-test start-server http://localhost:8080 test",
-    "test:watch": "NODE_ENV=test ava -w"
+    "test:watch": "NODE_ENV=test ava -w",
+    "build:watch": "tsc -w"
   },
   "keywords": [],
   "author": "Jake Sower",

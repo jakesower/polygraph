@@ -126,6 +126,82 @@ test('fetches multiple resources', async t => {
   ]);
 });
 
+test('fetches resources with an equality condition', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: { home: {} },
+    filter: { gender: { $eq: 'male' } },
+  });
+
+  t.deepEqual(result, [
+    {
+      type: 'bears',
+      id: '1',
+      attributes: attrs.bears['1'],
+      relationships: {
+        home: {
+          type: 'homes',
+          id: '1',
+          attributes: attrs.homes['1'],
+          relationships: {},
+        },
+      },
+    },
+  ]);
+});
+
+test('fetches resources with a compound condition', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: {},
+    filter: { gender: { $eq: 'female' }, fur_color: { $eq: 'pink' } },
+  });
+
+  t.deepEqual(result, [
+    {
+      type: 'bears',
+      id: '2',
+      attributes: attrs.bears['2'],
+      relationships: {},
+    },
+    {
+      type: 'bears',
+      id: '5',
+      attributes: attrs.bears['5'],
+      relationships: {},
+    },
+  ]);
+});
+
+test('fetches resources with a nested condition', async t => {
+  const result = await t.context.store.get({
+    type: 'bears',
+    relationships: {},
+    filter: { fur_color: { $or: [{ $eq: 'pink' }, { $eq: 'turquoise' }] } },
+  });
+
+  t.deepEqual(result, [
+    {
+      type: 'bears',
+      id: '2',
+      attributes: attrs.bears['2'],
+      relationships: {},
+    },
+    {
+      type: 'bears',
+      id: '3',
+      attributes: attrs.bears['3'],
+      relationships: {},
+    },
+    {
+      type: 'bears',
+      id: '5',
+      attributes: attrs.bears['5'],
+      relationships: {},
+    },
+  ]);
+});
+
 test('fetches a single resource with a single relationship', async t => {
   const result = await t.context.store.get({
     type: 'bears',

@@ -18,8 +18,8 @@ export function processResults(resourceOrResources, getFromStore, context) {
   if (resourceOrResources == null) return null;
 
   const { query } = context;
-  const { first, limit, order } = query;
-  const useLimit = limit || order;
+  const { first, limit, offset, order } = query;
+  const useLimit = limit || offset;
 
   // operation combination functions for optimization
   const combinedOps = [

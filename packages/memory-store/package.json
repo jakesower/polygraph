@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "Jake Sower",
-  "license": "CC BY-NC-SA",
+  "license": "AGPL-3.0",
   "dependencies": {
     "@polygraph/utils": "*",
     "ajv": "^8.11.0"
